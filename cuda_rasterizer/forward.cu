@@ -130,7 +130,7 @@ __device__ bool computeTransMat(const glm::vec3 &p_world, const glm::vec4 &quat,
 // Computing the bounding box of the 2D Gaussian and its center,
 // where the center of the bounding box is used to create a low pass filter
 // in the image plane
-__device__ bool computeAABB(const float *transMat, float2 & center, float2 & extent) {
+__device__ bool computeAABB(const float *transMat, float2 & center, float2 & extent, int W, int H) {
 	glm::mat4x3 T = glm::mat4x3(
 		transMat[0], transMat[1], transMat[2],
 		transMat[3], transMat[4], transMat[5],
@@ -148,6 +148,9 @@ __device__ bool computeAABB(const float *transMat, float2 & center, float2 & ext
 		glm::dot(f, T[0] * T[3]),
 		glm::dot(f, T[1] * T[3]),
 		glm::dot(f, T[2] * T[3]));
+	
+	if (p.x < -W/4 || p.x > W*5/4 || p.y < -H/4 || p.y > H*5/4)
+		return false;
 
 	glm::vec3 h0 = p * p -
 		glm::vec3(
@@ -226,7 +229,7 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	//  compute center and extent
 	float2 center;
 	float2 extent;
-	ok = computeAABB(transMat, center, extent);
+	ok = computeAABB(transMat, center, extent, W, H);
 	if (!ok) return;
 
 	// add the bounding of countour
