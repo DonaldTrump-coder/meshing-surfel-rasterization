@@ -44,6 +44,7 @@ namespace CudaRasterizer
 		float* rgb;
 		uint32_t* point_offsets;
 		uint32_t* tiles_touched;
+		float* weights;//高斯渲染对应的权重（用于TSDF）
 
 		static GeometryState fromChunk(char*& chunk, size_t P);
 	};
