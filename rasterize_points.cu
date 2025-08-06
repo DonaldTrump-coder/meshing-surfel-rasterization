@@ -59,6 +59,7 @@ RasterizeGaussiansCUDA(
 	const bool record_transmittance,
 	const bool debug)
 {
+	//确保输入Tensor的形状正确
   if (means3D.ndimension() != 2 || means3D.size(1) != 3) {
 	AT_ERROR("means3D must have dimensions (num_points, 3)");
   }
@@ -71,10 +72,11 @@ RasterizeGaussiansCUDA(
 	AT_ERROR("rotations must have dimensions (num_points, 4)");
   }
 
-  const int P = means3D.size(0);
+  const int P = means3D.size(0);//点数
   const int H = image_height;
   const int W = image_width;
 
+  //确保输入数据的类型都是CUDA的Tensor类型
   CHECK_INPUT(background);
   CHECK_INPUT(means3D);
   CHECK_INPUT(colors);
@@ -90,8 +92,9 @@ RasterizeGaussiansCUDA(
   auto int_opts = means3D.options().dtype(torch::kInt32);
   auto float_opts = means3D.options().dtype(torch::kFloat32);
 
-  torch::Tensor out_color = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts);
-  torch::Tensor out_others = torch::full({3+3+2, H, W}, 0.0, float_opts);
+  //创建用于输出的张量
+  torch::Tensor out_color = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts);//输出的RGB图像
+  torch::Tensor out_others = torch::full({3+3+2, H, W}, 0.0, float_opts);//8通道
   torch::Tensor radii = torch::full({P}, 0, means3D.options().dtype(torch::kInt32));
 
   torch::Tensor transmittance = torch::full({P}, 0.0, float_opts);

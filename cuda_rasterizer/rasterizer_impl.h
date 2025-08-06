@@ -18,8 +18,13 @@
 
 namespace CudaRasterizer
 {
+	//将ptr指向分配好的内存处，chunk指向下一块内存
 	template <typename T>
-	static void obtain(char*& chunk, T*& ptr, std::size_t count, std::size_t alignment)
+	static void obtain(char*& chunk,//连续内存块中的起始地址(指向未分配的内存)
+					   T*& ptr,//用来接收分配的内存指针
+					   std::size_t count,//需要多大的空间（ptr可访问的范围）
+					   std::size_t alignment//用于对齐的字节数
+					)
 	{
 		std::size_t offset = (reinterpret_cast<std::uintptr_t>(chunk) + alignment - 1) & ~(alignment - 1);
 		ptr = reinterpret_cast<T*>(offset);
@@ -71,4 +76,5 @@ namespace CudaRasterizer
 		T::fromChunk(size, P);
 		return ((size_t)size) + 128;
 	}
+	//估算内存需求
 };

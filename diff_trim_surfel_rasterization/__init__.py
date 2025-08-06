@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch
 from . import _C
 
+#对于张量：深拷贝，其他的量都是浅拷贝
 def cpu_deep_copy_tuple(input_tuple):
     copied_tensors = [item.cpu().clone() if isinstance(item, torch.Tensor) else item for item in input_tuple]
     return tuple(copied_tensors)
@@ -101,7 +102,7 @@ class _RasterizeGaussians(torch.autograd.Function):
         ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer)
         return color, radii, depth
 
-    @staticmethod
+    @staticmethod#对渲染算子的梯度进行定义
     def backward(ctx, grad_out_color, grad_radii, grad_depth):
 
         # Restore necessary values from context
@@ -195,6 +196,7 @@ class GaussianRasterizer(nn.Module):
 
         raster_settings = self.raster_settings
 
+        #确保只传入了必要的参数
         if (shs is None and colors_precomp is None) or (shs is not None and colors_precomp is not None):
             raise Exception('Please provide excatly one of either SHs or precomputed colors!')
 

@@ -82,8 +82,9 @@ __global__ void duplicateWithKeys(
 		return;
 
 	// Generate no key/value pair for invisible Gaussians
-	if (radii[idx] > 0)
+	if (radii[idx] > 0)//只有可见的高斯才能进行操作
 	{
+		//对于所有需要渲染的高斯进行排序
 		// Find this Gaussian's offset in buffer for writing keys/values.
 		uint32_t off = (idx == 0) ? 0 : offsets[idx - 1];
 		uint2 rect_min, rect_max;
@@ -99,10 +100,12 @@ __global__ void duplicateWithKeys(
 		{
 			for (int x = rect_min.x; x < rect_max.x; x++)
 			{
+				//先按照ID排序，再按照深度排序
 				uint64_t key = y * grid.x + x;
 				key <<= 32;
 				key |= *((uint32_t*)&depths[idx]);
-				gaussian_keys_unsorted[off] = key;
+				//key的高位存放tiles的ID，低位存放在图像中的深度
+				gaussian_keys_unsorted[off] = key;//再后续依据key进行排序即可
 				gaussian_values_unsorted[off] = idx;
 				off++;
 			}
@@ -115,26 +118,29 @@ __global__ void duplicateWithKeys(
 // Run once per instanced (duplicated) Gaussian ID.
 __global__ void identifyTileRanges(int L, uint64_t* point_list_keys, uint2* ranges)
 {
+	//ranges的每一个参数对应每一个tile的起止位置信息
 	auto idx = cg::this_grid().thread_rank();
 	if (idx >= L)
 		return;
 
 	// Read tile ID from key. Update start/end of tile range if at limit.
-	uint64_t key = point_list_keys[idx];
-	uint32_t currtile = key >> 32;
+	uint64_t key = point_list_keys[idx];//当前高斯的索引key（tilesID+深度）
+	uint32_t currtile = key >> 32;//获取当前高斯key中的tilesID部分
 	if (idx == 0)
-		ranges[currtile].x = 0;
+		ranges[currtile].x = 0;//第一个高斯的起始点设为0
 	else
 	{
 		uint32_t prevtile = point_list_keys[idx - 1] >> 32;
 		if (currtile != prevtile)
 		{
+			//若当前的高斯和上一个高斯所属的tile不同，则将上一个tile的终点和当前tile
+			//的起点都设置为当前高斯
 			ranges[prevtile].y = idx;
 			ranges[currtile].x = idx;
 		}
 	}
 	if (idx == L - 1)
-		ranges[currtile].y = L;
+		ranges[currtile].y = L;//单独设置最后一个tile的终点
 }
 
 // Mark Gaussians as visible/invisible, based on view frustum testing
@@ -226,18 +232,22 @@ int CudaRasterizer::Rasterizer::forward(
 	const float focal_y = height / (2.0f * tan_fovy);
 	const float focal_x = width / (2.0f * tan_fovx);
 
+	//为每个点分配显存
 	size_t chunk_size = required<GeometryState>(P);
-	char* chunkptr = geometryBuffer(chunk_size);
-	GeometryState geomState = GeometryState::fromChunk(chunkptr, P);
+	char* chunkptr = geometryBuffer(chunk_size);//为geometryBuffer分配显存
+	GeometryState geomState = GeometryState::fromChunk(chunkptr, P);//为分配的显存切割空间
 
 	if (radii == nullptr)
 	{
 		radii = geomState.internal_radii;
 	}
 
-	dim3 tile_grid((width + BLOCK_X - 1) / BLOCK_X, (height + BLOCK_Y - 1) / BLOCK_Y, 1);
-	dim3 block(BLOCK_X, BLOCK_Y, 1);
+	//定义线程块
+	dim3 tile_grid((width + BLOCK_X - 1) / BLOCK_X, (height + BLOCK_Y - 1) / BLOCK_Y, 1);//线程块个数
+	//每个线程块处理16×16的像素
+	dim3 block(BLOCK_X, BLOCK_Y, 1);//单个线程块大小
 
+	//为每张图像分配显存
 	// Dynamically resize image-based auxiliary buffers during training
 	size_t img_chunk_size = required<ImageState>(width * height);
 	char* img_chunkptr = imageBuffer(img_chunk_size);
@@ -283,6 +293,7 @@ int CudaRasterizer::Rasterizer::forward(
 	// Retrieve total number of Gaussian instances to launch and resize aux buffers
 	int num_rendered;
 	CHECK_CUDA(cudaMemcpy(&num_rendered, geomState.point_offsets + P - 1, sizeof(int), cudaMemcpyDeviceToHost), debug);
+	//确定高斯影响tiles的总数
 
 	size_t binning_chunk_size = required<BinningState>(num_rendered);
 	char* binning_chunkptr = binningBuffer(binning_chunk_size);
@@ -290,6 +301,7 @@ int CudaRasterizer::Rasterizer::forward(
 
 	// For each instance to be rendered, produce adequate [ tile | depth ] key
 	// and corresponding dublicated Gaussian indices to be sorted
+	//启动多个线程进行key的构建
 	duplicateWithKeys << <(P + 255) / 256, 256 >> > (
 		P,
 		geomState.means2D,
@@ -302,9 +314,10 @@ int CudaRasterizer::Rasterizer::forward(
 	CHECK_CUDA(, debug)
 
 	int bit = getHigherMsb(tile_grid.x * tile_grid.y);
+	//32+bit是排序需要查询的key的位数
 
 	// Sort complete list of (duplicated) Gaussian indices by keys
-	CHECK_CUDA(cub::DeviceRadixSort::SortPairs(
+	CHECK_CUDA(cub::DeviceRadixSort::SortPairs( //排序
 		binningState.list_sorting_space,
 		binningState.sorting_size,
 		binningState.point_list_keys_unsorted, binningState.point_list_keys,
