@@ -50,6 +50,7 @@ namespace CudaRasterizer
 			const bool prefiltered,
 			float* out_color,
 			float* out_others,
+			float* weight,
 			float* transmittance,
 			int* num_covered_pixels,
 			bool record_transmittance,

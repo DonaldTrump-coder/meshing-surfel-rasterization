@@ -174,6 +174,29 @@ __device__ bool computeAABB(const float *transMat, float2 & center, float2 & ext
 	return true;
 }
 
+//依据夹角计算权重
+__device__ bool compute_weight(const glm::vec3 &p_world, const glm::vec4 &quat, const glm::vec2 &scale, const float *viewmat, float &weight)
+//点坐标和外参用于计算光线方向，旋转和缩放矩阵用于计算高斯朝向
+{
+	//构建相机到高斯的光线
+	const glm::mat3 W = glm::mat3(
+		viewmat[0],viewmat[1],viewmat[2],
+		viewmat[4],viewmat[5],viewmat[6],
+		viewmat[8],viewmat[9],viewmat[10]
+	);//旋转矩阵
+	const glm::vec3 cam_pos = glm::vec3(viewmat[12], viewmat[13], viewmat[14]); // camera center
+	//平移矩阵
+
+	glm::vec3 p_view = W * p_world + cam_pos;//点的世界坐标转为相机坐标
+	//quat和scale是高斯的旋转和缩放
+
+	//构建高斯的法线
+	glm::mat3 R = quat_to_rotmat(quat) * scale_to_mat({scale.x, scale.y, 1.0f}, 1.0f);
+	glm::vec3 tn = W*R[2];
+	float cos = glm::dot(-tn, p_view);//高斯的朝向和相机看向高斯的方向之间的夹角
+	weight=cos;//构建权重（根据不同的公式）
+}
+
 // Perform initial steps for each Gaussian prior to rasterization.
 template<int C>
 __global__ void preprocessCUDA(int P, int D, int M,
@@ -198,6 +221,7 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	float* transMats,
 	float* rgb,
 	float4* normal_opacity,
+	float* weights,
 	const dim3 grid,
 	uint32_t* tiles_touched,
 	bool prefiltered)
@@ -548,6 +572,7 @@ void FORWARD::preprocess(int P, int D, int M,
 	float* transMats,
 	float* rgb,
 	float4* normal_opacity,
+	float* weights,
 	const dim3 grid,
 	uint32_t* tiles_touched,
 	bool prefiltered)
@@ -575,6 +600,7 @@ void FORWARD::preprocess(int P, int D, int M,
 		transMats,
 		rgb,
 		normal_opacity,
+		weights,
 		grid,
 		tiles_touched,
 		prefiltered

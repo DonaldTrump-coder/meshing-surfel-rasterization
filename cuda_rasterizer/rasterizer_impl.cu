@@ -283,6 +283,7 @@ int CudaRasterizer::Rasterizer::forward(
 		geomState.transMat,
 		geomState.rgb,
 		geomState.normal_opacity,
+		geomState.weights,
 		tile_grid,
 		geomState.tiles_touched,
 		prefiltered

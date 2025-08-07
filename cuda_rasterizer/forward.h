@@ -45,6 +45,7 @@ namespace FORWARD
 		float* transMats,
 		float* colors,
 		float4* normal_opacity,
+		float* weights,
 		const dim3 grid,
 		uint32_t* tiles_touched,
 		bool prefiltered);
