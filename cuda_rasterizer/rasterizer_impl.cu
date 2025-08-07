@@ -172,6 +172,7 @@ CudaRasterizer::GeometryState CudaRasterizer::GeometryState::fromChunk(char*& ch
 	cub::DeviceScan::InclusiveSum(nullptr, geom.scan_size, geom.tiles_touched, geom.tiles_touched, P);
 	obtain(chunk, geom.scanning_space, geom.scan_size, 128);
 	obtain(chunk, geom.point_offsets, P, 128);
+	obtain(chunk, geom.weights, P, 128);//为权重Tensor分配显存
 	return geom;
 }
 
@@ -223,6 +224,7 @@ int CudaRasterizer::Rasterizer::forward(
 	const bool prefiltered,
 	float* out_color,
 	float* out_others,
+	float* weight,//传入权重Tensor的指针
 	float* transmittance,
 	int* num_covered_pixels,
 	bool record_transmittance,
@@ -234,7 +236,7 @@ int CudaRasterizer::Rasterizer::forward(
 
 	//为每个点分配显存
 	size_t chunk_size = required<GeometryState>(P);
-	char* chunkptr = geometryBuffer(chunk_size);//为geometryBuffer分配显存
+	char* chunkptr = geometryBuffer(chunk_size);//为geometryBuffer分配显存，获得连续的显存空间指针
 	GeometryState geomState = GeometryState::fromChunk(chunkptr, P);//为分配的显存切割空间
 
 	if (radii == nullptr)

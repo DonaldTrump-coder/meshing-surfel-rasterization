@@ -29,14 +29,14 @@
 	// AT_ASSERTM(x.is_contiguous(), #x " must be contiguous")
 
 std::function<char*(size_t N)> resizeFunctional(torch::Tensor& t) {
-	auto lambda = [&t](size_t N) {
+	auto lambda = [&t](size_t N) { //返回一个函数，该函数输入一个大小N，返回一个连续内存的指针
 		t.resize_({(long long)N});
 		return reinterpret_cast<char*>(t.contiguous().data_ptr());
 	};
 	return lambda;
 }
 
-std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>//增加一个Tensor返回值，即weight
 RasterizeGaussiansCUDA(
 	const torch::Tensor& background,
 	const torch::Tensor& means3D,
@@ -95,6 +95,7 @@ RasterizeGaussiansCUDA(
   //创建用于输出的张量
   torch::Tensor out_color = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts);//输出的RGB图像
   torch::Tensor out_others = torch::full({3+3+2, H, W}, 0.0, float_opts);//8通道
+  torch::Tensor weight = torch::full({H, W}, 0.0, float_opts);//单通道weight张量，大小仅为H×W
   torch::Tensor radii = torch::full({P}, 0, means3D.options().dtype(torch::kInt32));
 
   torch::Tensor transmittance = torch::full({P}, 0.0, float_opts);
@@ -141,13 +142,14 @@ RasterizeGaussiansCUDA(
 		prefiltered,
 		out_color.contiguous().data<float>(),
 		out_others.contiguous().data<float>(),
+		weight.contiguous().data<float>(),
 		transmittance.contiguous().data<float>(),
 		num_occluder.contiguous().data<int>(),
 		record_transmittance,
 		radii.contiguous().data<int>(),
 		debug);
   }
-  return std::make_tuple(rendered, out_color, out_others, radii, geomBuffer, binningBuffer, imgBuffer, transmittance, num_occluder);
+  return std::make_tuple(rendered, out_color, out_others, radii, weight, geomBuffer, binningBuffer, imgBuffer, transmittance, num_occluder);//返回的元组中加上权重
 }
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
