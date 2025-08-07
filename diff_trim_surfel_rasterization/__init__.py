@@ -85,13 +85,13 @@ class _RasterizeGaussians(torch.autograd.Function):
         if raster_settings.debug:
             cpu_args = cpu_deep_copy_tuple(args) # Copy them before they can be corrupted
             try:
-                num_rendered, color, depth, radii, geomBuffer, binningBuffer, imgBuffer, transmittance, num_covered_pixels = _C.rasterize_gaussians(*args)
+                num_rendered, color, depth, radii, weight, geomBuffer, binningBuffer, imgBuffer, transmittance, num_covered_pixels = _C.rasterize_gaussians(*args)
             except Exception as ex:
                 torch.save(cpu_args, "snapshot_fw.dump")
                 print("\nAn error occured in forward. Please forward snapshot_fw.dump for debugging.")
                 raise ex
-        else:
-            num_rendered, color, depth, radii, geomBuffer, binningBuffer, imgBuffer, transmittance, num_covered_pixels = _C.rasterize_gaussians(*args)
+        else:#增加一个输出：weight，作为与像素对齐的深度权重
+            num_rendered, color, depth, radii, weight, geomBuffer, binningBuffer, imgBuffer, transmittance, num_covered_pixels = _C.rasterize_gaussians(*args)
 
         if raster_settings.record_transmittance:
             return transmittance, num_covered_pixels, radii
@@ -100,7 +100,7 @@ class _RasterizeGaussians(torch.autograd.Function):
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
         ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer)
-        return color, radii, depth
+        return color, radii, depth, weight # 将wight输出返回
 
     @staticmethod#对渲染算子的梯度进行定义
     def backward(ctx, grad_out_color, grad_radii, grad_depth):
