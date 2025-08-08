@@ -194,7 +194,7 @@ __device__ bool compute_weight(const glm::vec3 &p_world, const glm::vec4 &quat, 
 	glm::mat3 R = quat_to_rotmat(quat) * scale_to_mat({scale.x, scale.y, 1.0f}, 1.0f);
 	glm::vec3 tn = W*R[2];
 	float cos = glm::dot(-tn, p_view);//高斯的朝向和相机看向高斯的方向之间的夹角
-	weight=cos;//构建权重（根据不同的公式）
+	weight=abs(cos);//构建权重（根据不同的公式）
 }
 
 // Perform initial steps for each Gaussian prior to rasterization.
@@ -261,6 +261,8 @@ __global__ void preprocessCUDA(int P, int D, int M,
 		transMat = transMats + idx * 9;
 	}
 
+	compute_weight(p_world, quat, scale, viewmatrix, weights[idx]);
+
 	//  compute center and extent
 	float2 center;
 	float2 extent;
@@ -312,11 +314,13 @@ renderCUDA(
 	const float* __restrict__ transMats,
 	const float* __restrict__ depths,
 	const float4* __restrict__ normal_opacity,
+	const float* __restrict__ weights,
 	float* __restrict__ final_T,
 	uint32_t* __restrict__ n_contrib,
 	const float* __restrict__ bg_color,
 	float* __restrict__ out_color,
 	float* __restrict__ out_others,
+	float* __restrict__ weight,//输出的权重张量
 	float* __restrict__ transmittance,
 	int* __restrict__ num_covered_pixels,
 	bool record_transmittance)
@@ -342,6 +346,7 @@ renderCUDA(
 
 	// Allocate storage for batches of collectively fetched data.
 	__shared__ int collected_id[BLOCK_SIZE];
+	__shared__ float collected_weight[BLOCK_SIZE];//为高斯的权重分配共享内存
 	__shared__ float2 collected_xy[BLOCK_SIZE];
 	__shared__ float4 collected_normal_opacity[BLOCK_SIZE];
 	__shared__ float3 collected_Tu[BLOCK_SIZE];
@@ -374,7 +379,7 @@ renderCUDA(
 	//每次加载BLOCK_SIZE个高斯
 	{
 		// End if entire block votes that it is done rasterizing
-		int num_done = __syncthreads_count(done);//每个线程是否都完成渲染
+		int num_done = __syncthreads_count(done);//每个线程(即每个像素)是否都完成渲染
 		if (num_done == BLOCK_SIZE)
 			break;
 
@@ -386,6 +391,7 @@ renderCUDA(
 			collected_id[block.thread_rank()] = coll_id;//读入高斯点ID
 			collected_xy[block.thread_rank()] = points_xy_image[coll_id];//高斯的像素坐标
 			collected_normal_opacity[block.thread_rank()] = normal_opacity[coll_id];//高斯的法线和透明度
+			collected_weight[block.thread_rank()]=weights[coll_id];//加载指定高斯的权重
 			collected_Tu[block.thread_rank()] = {transMats[9 * coll_id+0], transMats[9 * coll_id+1], transMats[9 * coll_id+2]};
 			collected_Tv[block.thread_rank()] = {transMats[9 * coll_id+3], transMats[9 * coll_id+4], transMats[9 * coll_id+5]};
 			collected_Tw[block.thread_rank()] = {transMats[9 * coll_id+6], transMats[9 * coll_id+7], transMats[9 * coll_id+8]};
@@ -521,11 +527,13 @@ void FORWARD::render(
 	const float* transMats,
 	const float* depths,
 	const float4* normal_opacity,
+	const float* weights,
 	float* final_T,
 	uint32_t* n_contrib,
 	const float* bg_color,
 	float* out_color,
 	float* out_others,
+	float* weight,
 	float* transmittance,
 	int* num_covered_pixels,
 	bool record_transmittance)
@@ -540,11 +548,13 @@ void FORWARD::render(
 		transMats,
 		depths,
 		normal_opacity,
+		weights,
 		final_T,
 		n_contrib,
 		bg_color,
 		out_color,
 		out_others,
+		weight,
 		transmittance,
 		num_covered_pixels,
 		record_transmittance);

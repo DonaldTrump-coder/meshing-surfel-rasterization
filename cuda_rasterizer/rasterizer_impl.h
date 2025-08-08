@@ -35,7 +35,7 @@ namespace CudaRasterizer
 	{
 		size_t scan_size;
 		float* depths;
-		char* scanning_space;
+		char* scanning_space;//临时内存的作用
 		bool* clamped;
 		int* internal_radii;
 		float2* means2D;
