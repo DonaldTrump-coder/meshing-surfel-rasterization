@@ -371,6 +371,7 @@ renderCUDA(
 	float median_depth = {0};
 	float median_weight = {0};
 	float median_contributor = {-1};
+	float Weight = {0};//记录当前像素的累计权重
 
 #endif
 
@@ -404,6 +405,7 @@ renderCUDA(
 		{
 			// Keep track of current position in range
 			contributor++;
+			float gaussian_ray_weight=collected_weight[j];
 
 			// Fisrt compute two homogeneous planes, See Eq. (8)
 			float3 Tu = collected_Tu[j];
@@ -445,7 +447,7 @@ renderCUDA(
 			// and its exponential falloff from mean.
 			// Avoid numerical instabilities (see paper appendix).
 			float alpha = min(0.99f, nor_o.w * exp(power));//高斯的不透明度
-			if (record_transmittance){
+			if (record_transmittance){ //保存不透明度的信息
 				atomicAdd(&transmittance[collected_id[j]], T * alpha);
 				atomicAdd(&num_covered_pixels[collected_id[j]], 1);
 			}
@@ -462,24 +464,28 @@ renderCUDA(
 #if RENDER_AXUTILITY
 			// Render depth distortion map
 			// Efficient implementation of distortion loss, see 2DGS' paper appendix.
-			float A = 1-T;
+			//像素点每渲染一个高斯透射率T就会被赋值T*(1-alpha)
+			float A = 1-T;//T是透射率
 			float mapped_depth = (FAR_PLANE * depth - FAR_PLANE * NEAR_PLANE) / ((FAR_PLANE - NEAR_PLANE) * depth);
 			float error = mapped_depth * mapped_depth * A + dist2 - 2 * mapped_depth * dist1;
 			distortion += error * alpha * T;
 
-			if (T > 0.5) {
+			if (T > 0.5) { //具有代表性的中值深度
 				median_depth = depth;
 				median_weight = alpha * T;
 				median_contributor = contributor;
 			}
 			// Render normal map
 			for (int ch=0; ch<3; ch++) N[ch] += normal[ch] * alpha * T;
+			//根据每个高斯的权重逐渐叠加像素的法线
 
 			// Render depth map
 			D += depth * alpha * T;
 			// Efficient implementation of distortion loss, see 2DGS' paper appendix.
 			dist1 += mapped_depth * alpha * T;
 			dist2 += mapped_depth * mapped_depth * alpha * T;
+
+			Weight += gaussian_ray_weight * alpha * T;//计算累计权重
 #endif
 
 			// Eq. (3) from 3D Gaussian splatting paper.
@@ -497,12 +503,14 @@ renderCUDA(
 	// rendering data to the frame and auxiliary buffers.
 	if (inside)
 	{
-		final_T[pix_id] = T;
-		n_contrib[pix_id] = last_contributor;
+		final_T[pix_id] = T;//像素最终的透光率
+		n_contrib[pix_id] = last_contributor;//贡献该像素的高斯数目
 		for (int ch = 0; ch < CHANNELS; ch++)
 			out_color[ch * H * W + pix_id] = C[ch] + T * bg_color[ch];
+			//剩余透光部分填充背景色
 
 #if RENDER_AXUTILITY
+		weight[pix_id]=Weight;//将累积的权重放入对应的像素中
 		n_contrib[pix_id + H * W] = median_contributor;
 		final_T[pix_id + H * W] = dist1;
 		final_T[pix_id + 2 * H * W] = dist2;
