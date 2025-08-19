@@ -70,8 +70,8 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                 {
                     continue;
                 }
-                double depth=get_value(depth_map,uv.x,uv.y);
-                double weight=get_value(weight_map,uv.x,uv.y);
+                double depth=get_value(depth_map,uv.x,uv.y,width,height);
+                double weight=get_value(weight_map,uv.x,uv.y,width,height);
                 double sdf=depth-camera_P.z;
                 double tsdf=std::clamp(sdf/sdf_trunc, -1.0, 1.0);
                 v->tsdf = (v->weight * v->tsdf + tsdf*weight) / (v->weight + weight);
