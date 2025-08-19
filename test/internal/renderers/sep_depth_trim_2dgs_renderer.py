@@ -8,7 +8,7 @@ from .renderer import RendererOutputTypes, RendererOutputInfo, Renderer
 from ..cameras import Camera
 from ..models.gaussian import GaussianModel
 
-from diff_trim_surfel_rasterization import GaussianRasterizationSettings, GaussianRasterizer
+from meshing_surfel_rasterization import GaussianRasterizationSettings, GaussianRasterizer
 
 class SepDepthTrim2DGSRenderer(Renderer):
     def __init__(
