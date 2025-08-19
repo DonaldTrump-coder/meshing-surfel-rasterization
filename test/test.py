@@ -114,7 +114,7 @@ if __name__ == "__main__":
     sdf_trunc = args.sdf_trunc
 
     tsdf=TSDF_forGS.TSDF()
-    tsdf.addGrids(bounding[0,0],bounding[0,1],bounding[0,2],bounding[0,3],bounding[0,4],bounding[0,5],args.voxel_size,args.sdf_trunc,args.depth_trunc)
+    tsdf.addGrids(bounding[0,0],bounding[0,1],bounding[0,2],bounding[0,3],bounding[0,4],bounding[0,5],voxel_size,sdf_trunc,depth_trunc)
     tsdf.TSDF_Integration(get_intrinsic(cameras[0]),get_extrinsic(cameras[0]),depths[0][0],weights[0])
     points,triangles=tsdf.extract_mesh()
     mesh=o3d.geometry.TriangleMesh()
