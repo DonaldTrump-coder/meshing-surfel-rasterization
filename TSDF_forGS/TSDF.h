@@ -82,7 +82,7 @@ public:
     void Set_Param(double sdf_trunc,//max sdf
                    double depth_trunc//max depth
                 );//set other parameters
-    void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, const double** depth_map, const double** weight_map, int width, int height);
+    void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, double* depth_map, double* weight_map, int width, int height);
     void setVoxel(Voxel& voxel, int i, int j, int k);//Set the vertices of a voxel
     void get_Voxel_Planes(Voxel& voxel, Plane& front, Plane& back, Plane& left, Plane& right, Plane& bottom, Plane& top);
     void add_Plane_Lines(std::vector<Line*>& lines, Plane plane);//match and add the lines of a plane to the lines of the voxel
@@ -111,7 +111,7 @@ class TSDF
         std::vector<Triangle> triangles;
     public:
         void addGrids(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double voxel_size, double sdf_trunc, double depth_trunc);
-        void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, const double** depth_map, const double** weight_map, int width, int height);
+        void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, double* depth_map, double* weight_map, int width, int height);
         void Marching_Cubes();
         void clearGrids();
         py::array_t<double> getPoints();

@@ -11,11 +11,11 @@ glm::vec2 projectPointToPixel(const glm::vec3& P_w,//3D points coordinate
     return uv;
 }
 
-double get_value(const double** image, double u, double v)
+double get_value(const double* image, double u, double v, int width, int height)
 {
     int u_idx=(int)(u+0.5);
     int v_idx=(int)(v+0.5);
-    return image[u_idx][v_idx];
+    return image[v_idx * width + u_idx];
 }
 
 void Linear_Interp(double& x, double& y, double& z, const double& x1, const double& y1, const double& z1, const double& x2, const double& y2, const double& z2, const double& value1, const double& value2)

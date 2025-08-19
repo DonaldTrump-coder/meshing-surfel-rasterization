@@ -46,8 +46,8 @@ void Grids::Set_Param(double sdf_trunc, double depth_trunc)
 
 void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                              const glm::mat4x3 Rt,//Outer Matrix of camera(3×4)
-                             const double** depth_map, //depth map of camera
-                             const double** weight_map, // weight map of camera
+                             double* depth_map, //depth map of camera
+                             double* weight_map, // weight map of camera
                              int width,
                              int height
                             )
@@ -531,7 +531,7 @@ void TSDF::addGrids(double xmin, double ymin, double zmin, double xmax, double y
     }
 }
 
-void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, const double** depth_map, const double** weight_map, int width, int height)
+void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, double* depth_map, double* weight_map, int width, int height)
 {
     for(int i=0;i<grids_num;i++)
     {
