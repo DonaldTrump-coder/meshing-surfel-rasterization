@@ -10,17 +10,20 @@
 #
 
 from setuptools import setup
-from torch.utils.cpp_extension import CUDAExtension, BuildExtension
+from torch.utils.cpp_extension import CUDAExtension, BuildExtension, CppExtension
 import os
+import pybind11
 os.path.dirname(os.path.abspath(__file__))
 
 setup(
-    name="diff_trim_surfel_rasterization",
-    packages=['diff_trim_surfel_rasterization'],
+    name="meshing_surfel_rasterization",
+    packages=['meshing_surfel_rasterization',
+              'TSDF_forGS' # 新增的包
+              ],
     version='0.0.0',
     ext_modules=[
         CUDAExtension(
-            name="diff_trim_surfel_rasterization._C",
+            name="meshing_surfel_rasterization._C",
             sources=[
             "cuda_rasterizer/rasterizer_impl.cu",
             "cuda_rasterizer/forward.cu",
@@ -32,7 +35,19 @@ setup(
                                     '-I' + os.path.join(os.path.dirname(os.path.abspath(__file__)), "third_party/glm/")
                                         ]
                                 }
-            )
+            ),
+        CppExtension(
+            name='TSDF_forGS._C',
+            sources=[
+                "TSDF_forGS/TSDF.cpp",
+                "TSDF_forGS/binding.cpp",
+                "TSDF_forGS/cameras.cpp"
+                     ],
+            include_dirs=[
+                pybind11.get_include(),
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "third_party/glm/") # 添加第三方库glm
+                ]
+        )
         ],
     cmdclass={
         'build_ext': BuildExtension

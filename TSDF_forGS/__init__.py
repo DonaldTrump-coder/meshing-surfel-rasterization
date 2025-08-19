@@ -1,0 +1,22 @@
+from . import _C
+import numpy as np
+
+__version__="0.0.1" # 手写TSDF的版本
+
+class TSDF:
+    def __init__(self):
+        self.tsdf=_C.TSDF()
+    
+    def addGrids(self, xmin, ymin, zmin, xmax, ymax, zmax, voxel_size, sdf_trunc, depth_trunc):
+        self.tsdf.addGrids(xmin,ymin,zmin,xmax,ymax,zmax,voxel_size,sdf_trunc,depth_trunc)
+
+    def TSDF_Integration(self, K: np.ndarray, Rt: np.ndarray,depth_map: np.ndarray, weight_map: np.ndarray):
+
+        height, width = weight_map.shape
+        self.tsdf.TSDF_Integration(K, Rt, depth_map, weight_map, width, height)
+
+    def extract_mesh(self):
+        self.tsdf.Marching_Cubes()
+        points=self.tsdf.getPoints()
+        triangles = self.tsdf.getTriangles()
+        return points, triangles

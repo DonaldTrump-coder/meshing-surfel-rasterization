@@ -1,8 +1,9 @@
 build/
-diff_trim_surfel_rasterization.egg-info/
+*.egg-info/
 dist/
 *.so
 .vscode
 **__pycache__**
 *.pyc
 *.pyd
+data/
