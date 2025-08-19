@@ -4,6 +4,7 @@ glm::vec2 projectPointToPixel(const glm::vec3& P_w,//3D points coordinate
                               const glm::mat4x3& P//Matrix of the camera
                             )
 {
+    //glm::mat3x4 P_=glm::transpose(P);
     glm::vec3 Pc_h = P * glm::vec4(P_w, 1.0);//摄像机矩阵乘以齐次坐标
     glm::vec2 uv;
     uv.x = Pc_h.x / Pc_h.z;

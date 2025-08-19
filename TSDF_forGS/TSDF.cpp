@@ -22,7 +22,7 @@ Grids::Grids(double xmin, double ymin, double zmin, double xmax, double ymax, do
             {
                 get_vertex(i,j,k)->x=xmin+i*voxel_size;
                 get_vertex(i,j,k)->y=ymin+j*voxel_size;
-                get_vertex(i,j,k)->z=zmin=k*voxel_size;
+                get_vertex(i,j,k)->z=zmin+k*voxel_size;
             }
         }
     }
