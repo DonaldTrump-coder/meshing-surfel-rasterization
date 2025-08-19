@@ -2,7 +2,7 @@
 
 glm::mat3 np_to_glm3(pybind11::array_t<double> arr);
 glm::mat4x3 np_to_glm4x3(pybind11::array_t<double> arr);
-double* np_to_array1d(pybind11::array_t<double> arr)
+double* np_to_array1d(pybind11::array_t<double> arr);
 
 namespace py = pybind11;
 
