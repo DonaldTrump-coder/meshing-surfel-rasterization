@@ -101,7 +101,6 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                         continue;
                     }
                 }
-                double tsdf=std::clamp(sdf/sdf_trunc, -1.0, 1.0);
                 v->tsdf = (v->weight * v->tsdf + tsdf*weight) / (v->weight + weight);
                 v->weight += weight;
                 v->seen=1;
