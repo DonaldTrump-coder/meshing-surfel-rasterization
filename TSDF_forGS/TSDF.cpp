@@ -53,7 +53,7 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                              int height
                             )
 {
-    glm::mat4x3& P=K*Rt;
+    glm::mat4x3 P=K*Rt;
     #pragma omp parallel for collapse(3)
     for(int i=0;i<x_length+1;i++)
     {
