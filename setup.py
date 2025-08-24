@@ -46,7 +46,9 @@ setup(
             include_dirs=[
                 pybind11.get_include(),
                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "third_party/glm/") # 添加第三方库glm
-                ]
+                ],
+            extra_compile_args=['-fopenmp'],
+            extra_link_args=['-fopenmp']
         )
         ],
     cmdclass={

@@ -1,6 +1,6 @@
 #include <glm/glm.hpp>
 
-glm::vec2 projectPointToPixel(const glm::vec3& P_w, const glm::mat4x3& P);
+glm::vec2 projectPointToPixel(const double x, const double y, const double z, const glm::mat4x3& P);
 //project a 3D point to pixel
 
 double get_value(const double* image, double u, double v, int width, int height);

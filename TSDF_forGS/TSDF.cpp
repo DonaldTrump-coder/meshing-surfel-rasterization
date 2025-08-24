@@ -53,6 +53,8 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                              int height
                             )
 {
+    glm::mat4x3& P=K*Rt;
+    #pragma omp parallel for collapse(3)
     for(int i=0;i<x_length+1;i++)
     {
         for(int j=0;j<y_length+1;j++)
@@ -60,13 +62,12 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
             for(int k=0;k<z_length+1;k++)
             {
                 Vertex* v=get_vertex(i,j,k);// The vertex to be projected
-                const glm::vec3 vertex_p(v->x, v->y, v->z);// The 3D coordinate of the vertex
-                glm::vec2 uv=projectPointToPixel(vertex_p, K*Rt);// The 2D coordinate of the vertex on the image
+                glm::vec2 uv=projectPointToPixel(v->x, v->y, v->z, P);// The 2D coordinate of the vertex on the image
                 if(uv.x<0||uv.x>(width-1)||uv.y<0||uv.y>(height-1))
                 {
                     continue;// if not in the image, pass the vertex
                 }
-                glm::vec3 camera_P=Rt*glm::vec4(vertex_p, 1.0);
+                glm::vec3 camera_P=Rt*glm::vec4(v->x, v->y, v->z, 1.0);
                 if(camera_P.z<0)
                 {
                     continue;// if behind the image, pass the vertex
@@ -78,37 +79,11 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                     continue;
                 }
                 double sdf=depth-camera_P.z;// sdf>0: front of the surface; sdf<0: behind the surface
-                double tsdf = 0;
-                if(sdf>=0)
+                if (sdf > 2*sdf_trunc || sdf < -2*back_sdf_trunc) 
                 {
-                    if(sdf<=sdf_trunc)
-                    {
-                        tsdf=sdf;
-                    }
-                    else if(sdf<=2*sdf_trunc)
-                    {
-                        tsdf=sdf_trunc;
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    continue;
                 }
-                else
-                {
-                    if(sdf>=-back_sdf_trunc)
-                    {
-                        tsdf=sdf;
-                    }
-                    else if(sdf>=-2*back_sdf_trunc)
-                    {
-                        tsdf=-sdf_trunc;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
+                double tsdf = std::clamp(sdf, -back_sdf_trunc, sdf_trunc);
                 v->tsdf = (v->weight * v->tsdf + tsdf*weight) / (v->weight + weight);
                 v->weight += weight;
                 v->seen=1;
