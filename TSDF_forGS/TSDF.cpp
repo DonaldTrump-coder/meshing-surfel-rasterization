@@ -42,6 +42,7 @@ void Grids::Set_Param(double sdf_trunc, double depth_trunc)
 {
     this->sdf_trunc=sdf_trunc;
     this->depth_trunc=depth_trunc;
+    this->back_sdf_trunc=sdf_trunc*0.2;
 }
 
 void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
@@ -58,9 +59,9 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
         {
             for(int k=0;k<z_length+1;k++)
             {
-                Vertex* v=get_vertex(i,j,k);
-                const glm::vec3 vertex_p(xmin+i*voxel_size, ymin+j*voxel_size, zmin+k*voxel_size);
-                glm::vec2 uv=projectPointToPixel(vertex_p, K*Rt);
+                Vertex* v=get_vertex(i,j,k);// The vertex to be projected
+                const glm::vec3 vertex_p(v->x, v->y, v->z);// The 3D coordinate of the vertex
+                glm::vec2 uv=projectPointToPixel(vertex_p, K*Rt);// The 2D coordinate of the vertex on the image
                 if(uv.x<0||uv.x>(width-1)||uv.y<0||uv.y>(height-1))
                 {
                     continue;// if not in the image, pass the vertex
@@ -68,15 +69,38 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                 glm::vec3 camera_P=Rt*glm::vec4(vertex_p, 1.0);
                 if(camera_P.z<0)
                 {
-                    continue;
+                    continue;// if behind the image, pass the vertex
                 }
-                double depth=get_value(depth_map,uv.x,uv.y,width,height);
+                double depth=get_value(depth_map,uv.x,uv.y,width,height);// surface depth from the depth map
                 double weight=get_value(weight_map,uv.x,uv.y,width,height);
                 if(depth>depth_trunc)
                 {
                     continue;
                 }
-                double sdf=depth-camera_P.z;
+                double sdf=depth-camera_P.z;// sdf>0: front of the surface; sdf<0: behind the surface
+                double tsdf = 0;
+                if(sdf>=0)
+                {
+                    if(sdf<=sdf_trunc)
+                    {
+                        tsdf=sdf;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if(sdf>=-back_sdf_trunc)
+                    {
+                        tsdf=sdf;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
                 double tsdf=std::clamp(sdf/sdf_trunc, -1.0, 1.0);
                 v->tsdf = (v->weight * v->tsdf + tsdf*weight) / (v->weight + weight);
                 v->weight += weight;

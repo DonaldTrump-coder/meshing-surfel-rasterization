@@ -72,6 +72,7 @@ private:
     Vertex* vertices;//索引所有顶点  index all the vertices
     double sdf_trunc;
     double depth_trunc;
+    double back_sdf_trunc;
 public:
     int x_length;//格网x方向体素数(不是顶点数)
     int y_length;//格网y方向体素数
