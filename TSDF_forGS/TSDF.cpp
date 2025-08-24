@@ -85,6 +85,10 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                     {
                         tsdf=sdf;
                     }
+                    else if(sdf<=2*sdf_trunc)
+                    {
+                        tsdf=sdf_trunc;
+                    }
                     else
                     {
                         continue;
@@ -95,6 +99,10 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                     if(sdf>=-back_sdf_trunc)
                     {
                         tsdf=sdf;
+                    }
+                    else if(sdf>=-2*back_sdf_trunc)
+                    {
+                        tsdf=-sdf_trunc;
                     }
                     else
                     {
@@ -605,6 +613,7 @@ void TSDF::clearGrids()
         delete grids[i];
     }
     delete[] grids;
+    grids=NULL;
 }
 
 py::array_t<double> TSDF::getPoints()
