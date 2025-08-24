@@ -1,11 +1,11 @@
 #include "TSDF.h"
 
-Grids::Grids(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double voxel_size)
+Grids::Grids(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, float voxel_size)
 {
     this->voxel_size = voxel_size;
-    double dx=xmax-xmin;
-    double dy=ymax-ymin;
-    double dz=zmax-zmin;
+    float dx=xmax-xmin;
+    float dy=ymax-ymin;
+    float dz=zmax-zmin;
     x_length=(int)(dx/voxel_size)+1;
     y_length=(int)(dy/voxel_size)+1;
     z_length=(int)(dz/voxel_size)+1;//确定格网各方向的格网个数
@@ -14,6 +14,7 @@ Grids::Grids(double xmin, double ymin, double zmin, double xmax, double ymax, do
     this->zmin=zmin;
     vertices=new Vertex[(x_length+1)*(y_length+1)*(z_length+1)];
     //index vertices[i,j,k]: vertices[i*(y_length+1)*(z_length+1) + j*(z_length+1) + k]
+    #pragma omp parallel for collapse(3)// Accelerate
     for(int i=0;i<x_length+1;i++)
     {
         for(int j=0;j<y_length+1;j++)
@@ -38,7 +39,7 @@ Vertex* Grids::get_vertex(int i, int j, int k)
     return &vertices[i*(y_length+1)*(z_length+1) + j*(z_length+1) + k];
 }
 
-void Grids::Set_Param(double sdf_trunc, double depth_trunc)
+void Grids::Set_Param(float sdf_trunc, float depth_trunc)
 {
     this->sdf_trunc=sdf_trunc;
     this->depth_trunc=depth_trunc;
@@ -47,8 +48,8 @@ void Grids::Set_Param(double sdf_trunc, double depth_trunc)
 
 void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                              const glm::mat4x3 Rt,//Outer Matrix of camera(3×4)
-                             double* depth_map, //depth map of camera
-                             double* weight_map, // weight map of camera
+                             float* depth_map, //depth map of camera
+                             float* weight_map, // weight map of camera
                              int width,
                              int height
                             )
@@ -72,18 +73,18 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                 {
                     continue;// if behind the image, pass the vertex
                 }
-                double depth=get_value(depth_map,uv.x,uv.y,width,height);// surface depth from the depth map
-                double weight=get_value(weight_map,uv.x,uv.y,width,height);
+                float depth=get_value(depth_map,uv.x,uv.y,width,height);// surface depth from the depth map
+                float weight=get_value(weight_map,uv.x,uv.y,width,height);
                 if(depth>depth_trunc)
                 {
                     continue;
                 }
-                double sdf=depth-camera_P.z;// sdf>0: front of the surface; sdf<0: behind the surface
+                float sdf=depth-camera_P.z;// sdf>0: front of the surface; sdf<0: behind the surface
                 if (sdf > 2*sdf_trunc || sdf < -2*back_sdf_trunc) 
                 {
                     continue;
                 }
-                double tsdf = std::clamp(sdf, -back_sdf_trunc, sdf_trunc);
+                float tsdf = std::clamp(sdf, -back_sdf_trunc, sdf_trunc);
                 v->tsdf = (v->weight * v->tsdf + tsdf*weight) / (v->weight + weight);
                 v->weight += weight;
                 v->seen=1;
@@ -525,7 +526,7 @@ bool Grids::seen(Voxel& voxel)
     return 1;
 }
 
-void TSDF::addGrids(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double voxel_size, double sdf_trunc, double depth_trunc)
+void TSDF::addGrids(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, float voxel_size, float sdf_trunc, float depth_trunc)
 {
     if(grids==NULL)
     {
@@ -541,7 +542,7 @@ void TSDF::addGrids(double xmin, double ymin, double zmin, double xmax, double y
     }
 }
 
-void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, double* depth_map, double* weight_map, int width, int height)
+void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* depth_map, float* weight_map, int width, int height)
 {
     for(int i=0;i<grids_num;i++)
     {
@@ -591,10 +592,10 @@ void TSDF::clearGrids()
     grids=NULL;
 }
 
-py::array_t<double> TSDF::getPoints()
+py::array_t<float> TSDF::getPoints()
 {
     std::vector<std::ptrdiff_t> shape = { static_cast<std::ptrdiff_t>(points.size()), 3 };
-    py::array_t<double> arr(shape);
+    py::array_t<float> arr(shape);
     auto buf = arr.mutable_unchecked<2>();
     for (size_t i=0; i<points.size(); i++) 
     {

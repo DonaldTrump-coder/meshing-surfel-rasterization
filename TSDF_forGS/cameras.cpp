@@ -1,8 +1,8 @@
 #include "cameras.h"
 
-glm::vec2 projectPointToPixel(const double x,
-                              const double y,
-                              const double z,// 3D points coordinate
+glm::vec2 projectPointToPixel(const float x,
+                              const float y,
+                              const float z,// 3D points coordinate
                               const glm::mat4x3& P// Matrix of the camera
                             )
 {
@@ -14,26 +14,26 @@ glm::vec2 projectPointToPixel(const double x,
     return uv;
 }
 
-double get_value(const double* image, double u, double v, int width, int height)
+float get_value(const float* image, float u, float v, int width, int height)
 {
     int u_idx=(int)(u+0.5);
     int v_idx=(int)(v+0.5);
     return image[v_idx * width + u_idx];
 }
 
-void Linear_Interp(double& x, double& y, double& z, const double& x1, const double& y1, const double& z1, const double& x2, const double& y2, const double& z2, const double& value1, const double& value2)
+void Linear_Interp(float& x, float& y, float& z, const float& x1, const float& y1, const float& z1, const float& x2, const float& y2, const float& z2, const float& value1, const float& value2)
 {
-    double t=-value1/(value2-value1);
+    float t=-value1/(value2-value1);
     x=x1+(x2-x1)*t;
     y=y1+(y2-y1)*t;
     z=z1+(z2-z1)*t;
     return;
 }
 
-double get_dist(const double x1, const double y1, const double z1, const double x2, const double y2, const double z2)
+float get_dist(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2)
 {
-    double dx=x2-x1;
-    double dy=y2-y1;
-    double dz=z2-z1;
+    float dx=x2-x1;
+    float dy=y2-y1;
+    float dz=z2-z1;
     return sqrt(dx*dx+dy*dy+dz*dz);
 }

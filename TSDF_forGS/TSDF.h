@@ -11,22 +11,22 @@ namespace py = pybind11;
 //Storing TSDF directly in the Vertices
 struct Vertex
 {
-    double tsdf = 0;
-    double weight = 0;
+    float tsdf = 0;
+    float weight = 0;
     bool seen = 0;//Whether been seen by the cameras
-    double x,y,z;
+    float x,y,z;
 };
 //顶点结构体，存储两个变量  Storing the TSDF and the weight
 
 struct Line
 {
-    double starting_x;
-    double starting_y;
-    double starting_z;
+    float starting_x;
+    float starting_y;
+    float starting_z;
 
-    double ending_x;
-    double ending_y;
-    double ending_z;
+    float ending_x;
+    float ending_y;
+    float ending_z;
     bool added=0;
 };
 //a line of a triangle mesh
@@ -55,7 +55,7 @@ struct Plane
 
 struct Point
 {
-    double x,y,z;
+    float x,y,z;
     size_t index;
 };
 
@@ -67,23 +67,23 @@ struct Triangle
 class Grids
 {
 private:
-    double voxel_size;
-    double xmin, ymin, zmin;
+    float voxel_size;
+    float xmin, ymin, zmin;
     Vertex* vertices;//索引所有顶点  index all the vertices
-    double sdf_trunc;
-    double depth_trunc;
-    double back_sdf_trunc;
+    float sdf_trunc;
+    float depth_trunc;
+    float back_sdf_trunc;
 public:
     int x_length;//格网x方向体素数(不是顶点数)
     int y_length;//格网y方向体素数
     int z_length;//格网z方向体素数
-    Grids(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double voxel_size);//Initialize boundaries and size
+    Grids(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, float voxel_size);//Initialize boundaries and size
     ~Grids();//clear the storage
     Vertex* get_vertex(int i, int j, int k);
-    void Set_Param(double sdf_trunc,//max sdf
-                   double depth_trunc//max depth
+    void Set_Param(float sdf_trunc,//max sdf
+                   float depth_trunc//max depth
                 );//set other parameters
-    void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, double* depth_map, double* weight_map, int width, int height);
+    void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* depth_map, float* weight_map, int width, int height);
     void setVoxel(Voxel& voxel, int i, int j, int k);//Set the vertices of a voxel
     void get_Voxel_Planes(Voxel& voxel, Plane& front, Plane& back, Plane& left, Plane& right, Plane& bottom, Plane& top);
     void add_Plane_Lines(std::vector<Line*>& lines, Plane plane);//match and add the lines of a plane to the lines of the voxel
@@ -111,11 +111,11 @@ class TSDF
         std::vector<Point> points;
         std::vector<Triangle> triangles;
     public:
-        void addGrids(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double voxel_size, double sdf_trunc, double depth_trunc);
-        void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, double* depth_map, double* weight_map, int width, int height);
+        void addGrids(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, float voxel_size, float sdf_trunc, float depth_trunc);
+        void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* depth_map, float* weight_map, int width, int height);
         void Marching_Cubes();
         void clearGrids();
-        py::array_t<double> getPoints();
+        py::array_t<float> getPoints();
         py::array_t<int> getTriangles();
 };
 //manage all the grids and mesh extraction

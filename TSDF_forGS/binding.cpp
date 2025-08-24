@@ -2,7 +2,7 @@
 
 glm::mat3 np_to_glm3(pybind11::array_t<double> arr);
 glm::mat4x3 np_to_glm4x3(pybind11::array_t<double> arr);
-double* np_to_array1d(pybind11::array_t<double> arr);
+float* np_to_array1d(pybind11::array_t<float> arr);
 
 namespace py = pybind11;
 
@@ -28,16 +28,16 @@ PYBIND11_MODULE(_C,m)
          [](TSDF &tsdf,
             py::array_t<double> K_np,
             py::array_t<double> Rt_np,
-            py::array_t<double> depth_np,
-            py::array_t<double> weight_np,
+            py::array_t<float> depth_np,
+            py::array_t<float> weight_np,
             int width,
             int height)
         {
             glm::mat3 K=np_to_glm3(K_np);
             glm::mat4x3 Rt = np_to_glm4x3(Rt_np);
             
-            double* depth=np_to_array1d(depth_np);
-            double* weight=np_to_array1d(weight_np);
+            float* depth=np_to_array1d(depth_np);
+            float* weight=np_to_array1d(weight_np);
 
             tsdf.TSDF_Integration(K, Rt, depth, weight, width, height);
         },
@@ -78,11 +78,11 @@ glm::mat4x3 np_to_glm4x3(pybind11::array_t<double> arr)
     );
 }
 
-double* np_to_array1d(pybind11::array_t<double> arr)
+float* np_to_array1d(pybind11::array_t<float> arr)
 {
     auto buf = arr.request();
     if (buf.ndim != 2) throw std::runtime_error("Expected 2D array");
 
     // 直接返回 NumPy 内部连续内存指针
-    return static_cast<double*>(buf.ptr);
+    return static_cast<float*>(buf.ptr);
 }
