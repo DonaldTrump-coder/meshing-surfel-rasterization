@@ -42,7 +42,7 @@ void Grids::Set_Param(double sdf_trunc, double depth_trunc)
 {
     this->sdf_trunc=sdf_trunc;
     this->depth_trunc=depth_trunc;
-    this->back_sdf_trunc=sdf_trunc*0.2;
+    this->back_sdf_trunc=sdf_trunc*0.5;
 }
 
 void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
