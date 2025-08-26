@@ -28,6 +28,9 @@ PYBIND11_MODULE(_C,m)
          [](TSDF &tsdf,
             py::array_t<double> K_np,
             py::array_t<double> Rt_np,
+            py::array_t<float> red_np,
+            py::array_t<float> green_np,
+            py::array_t<float> blue_np,
             py::array_t<float> depth_np,
             py::array_t<float> weight_np,
             int width,
@@ -36,13 +39,19 @@ PYBIND11_MODULE(_C,m)
             glm::mat3 K=np_to_glm3(K_np);
             glm::mat4x3 Rt = np_to_glm4x3(Rt_np);
             
+            float* red=np_to_array1d(red_np);
+            float* green=np_to_array1d(green_np);
+            float* blue=np_to_array1d(blue_np);
             float* depth=np_to_array1d(depth_np);
             float* weight=np_to_array1d(weight_np);
 
-            tsdf.TSDF_Integration(K, Rt, depth, weight, width, height);
+            tsdf.TSDF_Integration(K, Rt, red, green, blue, depth, weight, width, height);
         },
          py::arg("K"),
          py::arg("Rt"),
+         py::arg("red_map"),
+         py::arg("green_map"),
+         py::arg("blue_map"),
          py::arg("depth_map"),
          py::arg("weight_map"),
          py::arg("width"),
@@ -50,6 +59,7 @@ PYBIND11_MODULE(_C,m)
         )
     .def("Marching_Cubes",&TSDF::Marching_Cubes)
     .def("getPoints",&TSDF::getPoints)
+    .def("getColors",&TSDF::getColors)
     .def("getTriangles", &TSDF::getTriangles);
 }
 

@@ -48,6 +48,9 @@ void Grids::Set_Param(float sdf_trunc, float depth_trunc)
 
 void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                              const glm::mat4x3 Rt,//Outer Matrix of camera(3×4)
+                             float* red_map,
+                             float* green_map,
+                             float* blue_map,
                              float* depth_map, //depth map of camera
                              float* weight_map, // weight map of camera
                              int width,
@@ -75,6 +78,9 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                 }
                 float depth=get_value(depth_map,uv.x,uv.y,width,height);// surface depth from the depth map
                 float weight=get_value(weight_map,uv.x,uv.y,width,height);
+                float red=get_value(red_map, uv.x,uv.y,width,height);
+                float green=get_value(green_map, uv.x,uv.y,width,height);
+                float blue=get_value(blue_map, uv.x,uv.y,width,height);
                 if(depth>depth_trunc)
                 {
                     continue;
@@ -86,6 +92,9 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
                 }
                 float tsdf = std::clamp(sdf, -back_sdf_trunc, sdf_trunc);
                 v->tsdf = (v->weight * v->tsdf + tsdf*weight) / (v->weight + weight);
+                v->R = (v->weight * v->R + red*weight) / (v->weight + weight);
+                v->G = (v->weight * v->G + green*weight) / (v->weight + weight);
+                v->B = (v->weight * v->B + blue*weight) / (v->weight + weight);
                 v->weight += weight;
                 v->seen=1;
             }
@@ -168,6 +177,7 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert3->z,
                       plane.vert1->tsdf,
                       plane.vert3->tsdf);
+
         Linear_Interp(line1->ending_x,
                       line1->ending_y,
                       line1->ending_z,
@@ -179,6 +189,9 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert2->z,
                       plane.vert1->tsdf,
                       plane.vert2->tsdf);
+        line1->R=(plane.vert1->R+plane.vert2->R+plane.vert3->R)/3;
+        line1->G=(plane.vert1->G+plane.vert2->G+plane.vert3->G)/3;
+        line1->B=(plane.vert1->B+plane.vert2->B+plane.vert3->B)/3;
         lines.push_back(line1);
         return;
     }
@@ -208,6 +221,9 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert4->z,
                       plane.vert3->tsdf,
                       plane.vert4->tsdf);
+        line1->R=(plane.vert1->R+plane.vert4->R+plane.vert3->R)/3;
+        line1->G=(plane.vert1->G+plane.vert4->G+plane.vert3->G)/3;
+        line1->B=(plane.vert1->B+plane.vert4->B+plane.vert3->B)/3;
         lines.push_back(line1);
         return;
     }
@@ -237,6 +253,9 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert4->z,
                       plane.vert2->tsdf,
                       plane.vert4->tsdf);
+        line1->R=(plane.vert2->R+plane.vert4->R+plane.vert3->R)/3;
+        line1->G=(plane.vert2->G+plane.vert4->G+plane.vert3->G)/3;
+        line1->B=(plane.vert2->B+plane.vert4->B+plane.vert3->B)/3;
         lines.push_back(line1);
         return;
     }
@@ -266,6 +285,9 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert4->z,
                       plane.vert2->tsdf,
                       plane.vert4->tsdf);
+        line1->R=(plane.vert1->R+plane.vert4->R+plane.vert2->R)/3;
+        line1->G=(plane.vert1->G+plane.vert4->G+plane.vert2->G)/3;
+        line1->B=(plane.vert1->B+plane.vert4->B+plane.vert2->B)/3;
         lines.push_back(line1);
         return;
     }
@@ -296,6 +318,9 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert2->z,
                       plane.vert1->tsdf,
                       plane.vert2->tsdf);
+        line1->R=(plane.vert1->R+plane.vert2->R+plane.vert3->R)/3;
+        line1->G=(plane.vert1->G+plane.vert2->G+plane.vert3->G)/3;
+        line1->B=(plane.vert1->B+plane.vert2->B+plane.vert3->B)/3;
         lines.push_back(line1);
         Linear_Interp(line2->starting_x,
                       line2->starting_y,
@@ -319,6 +344,9 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert2->z,
                       plane.vert4->tsdf,
                       plane.vert2->tsdf);
+        line1->R=(plane.vert2->R+plane.vert4->R+plane.vert3->R)/3;
+        line1->G=(plane.vert2->G+plane.vert4->G+plane.vert3->G)/3;
+        line1->B=(plane.vert2->B+plane.vert4->B+plane.vert3->B)/3;
         lines.push_back(line2);
         return;
     }
@@ -348,6 +376,9 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert2->z,
                       plane.vert1->tsdf,
                       plane.vert2->tsdf);
+        line1->R=(plane.vert1->R+plane.vert2->R+plane.vert4->R+plane.vert3->R)/4;
+        line1->G=(plane.vert1->G+plane.vert2->G+plane.vert4->G+plane.vert3->G)/4;
+        line1->B=(plane.vert1->B+plane.vert2->B+plane.vert4->B+plane.vert3->B)/4;
         lines.push_back(line1);
         return;
     }
@@ -377,12 +408,15 @@ void Grids::add_Plane_Lines(std::vector<Line*>& lines, Plane plane)
                       plane.vert2->z,
                       plane.vert4->tsdf,
                       plane.vert2->tsdf);
+        line1->R=(plane.vert1->R+plane.vert2->R+plane.vert4->R+plane.vert3->R)/4;
+        line1->G=(plane.vert1->G+plane.vert2->G+plane.vert4->G+plane.vert3->G)/4;
+        line1->B=(plane.vert1->B+plane.vert2->B+plane.vert4->B+plane.vert3->B)/4;
         lines.push_back(line1);
         return;
     }
 }
 
-void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Triangle>& triangles, std::vector<Line*>& lines)
+void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Triangle>& triangles, std::vector<Color>& colors, std::vector<Line*>& lines)
 {
     size_t lines_num=lines.size();
     size_t points_num=points.size();
@@ -412,6 +446,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
 
                 points.push_back(starting);
                 points.push_back(ending);
+                colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                 temp_points.push_back(starting);
                 temp_points.push_back(ending);
                 lines[i]->added=1;
@@ -435,6 +470,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                     ending.z=lines[i]->ending_z;
                     if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.000001)
                     {
+                        colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                         extended=true;
                         matched=1;
                         break;
@@ -442,6 +478,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                     ending.index=points_num;
                     points_num++;
                     points.push_back(ending);
+                    colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                     temp_points.push_back(ending);
                     lines[i]->added=1;
                     extended=true;
@@ -455,6 +492,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                     ending.z=lines[i]->starting_z;
                     if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.000001)
                     {
+                        colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                         extended=true;
                         matched=1;
                         break;
@@ -462,6 +500,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                     ending.index=points_num;
                     points_num++;
                     points.push_back(ending);
+                    colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                     temp_points.push_back(ending);
                     lines[i]->added=1;
                     extended=true;
@@ -542,11 +581,11 @@ void TSDF::addGrids(float xmin, float ymin, float zmin, float xmax, float ymax, 
     }
 }
 
-void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* depth_map, float* weight_map, int width, int height)
+void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height)
 {
     for(int i=0;i<grids_num;i++)
     {
-        grids[i]->TSDF_Integration(K,Rt,depth_map,weight_map,width,height);
+        grids[i]->TSDF_Integration(K,Rt, red_map, green_map, blue_map, depth_map, weight_map,width,height);
     }
 }
 
@@ -573,7 +612,7 @@ void TSDF::Marching_Cubes()
                     grids[n]->add_Plane_Lines(vox.lines,right);
                     grids[n]->add_Plane_Lines(vox.lines,bottom);
                     grids[n]->add_Plane_Lines(vox.lines,top);
-                    grids[n]->Searching_for_Triangles(points,triangles,vox.lines);
+                    grids[n]->Searching_for_Triangles(points,triangles,colors,vox.lines);
                     grids[n]->clear_Voxel(vox);
                 }
             }
@@ -602,6 +641,20 @@ py::array_t<float> TSDF::getPoints()
         buf(i,0) = points[i].x;
         buf(i,1) = points[i].y;
         buf(i,2) = points[i].z;
+    }
+    return arr;
+}
+
+py::array_t<float> TSDF::getColors()
+{
+    std::vector<std::ptrdiff_t> shape = { static_cast<std::ptrdiff_t>(colors.size()), 3 };
+    py::array_t<float> arr(shape);
+    auto buf = arr.mutable_unchecked<2>();
+    for (size_t i=0; i<colors.size(); i++) 
+    {
+        buf(i,0) = colors[i].R;
+        buf(i,1) = colors[i].G;
+        buf(i,2) = colors[i].B;
     }
     return arr;
 }

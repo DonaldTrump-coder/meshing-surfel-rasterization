@@ -15,6 +15,9 @@ struct Vertex
     float weight = 0;
     bool seen = 0;//Whether been seen by the cameras
     float x,y,z;
+    float R=0;
+    float G=0;
+    float B=0;
 };
 //顶点结构体，存储两个变量  Storing the TSDF and the weight
 
@@ -23,6 +26,9 @@ struct Line
     float starting_x;
     float starting_y;
     float starting_z;
+    float R;
+    float G;
+    float B;
 
     float ending_x;
     float ending_y;
@@ -59,6 +65,14 @@ struct Point
     size_t index;
 };
 
+struct Color
+{
+    float R;
+    float G;
+    float B;
+    Color(float rr, float gg, float bb): R(rr), G(gg), B(bb) {} 
+};
+
 struct Triangle
 {
     size_t v1,v2,v3;//Indexs of the vertices
@@ -83,11 +97,11 @@ public:
     void Set_Param(float sdf_trunc,//max sdf
                    float depth_trunc//max depth
                 );//set other parameters
-    void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* depth_map, float* weight_map, int width, int height);
+    void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height);
     void setVoxel(Voxel& voxel, int i, int j, int k);//Set the vertices of a voxel
     void get_Voxel_Planes(Voxel& voxel, Plane& front, Plane& back, Plane& left, Plane& right, Plane& bottom, Plane& top);
     void add_Plane_Lines(std::vector<Line*>& lines, Plane plane);//match and add the lines of a plane to the lines of the voxel
-    void Searching_for_Triangles(std::vector<Point>& points, std::vector<Triangle>& triangles, std::vector<Line*>& lines);//find the triangles of the voxel, and add them to the vector
+    void Searching_for_Triangles(std::vector<Point>& points, std::vector<Triangle>& triangles, std::vector<Color>& colors, std::vector<Line*>& lines);//find the triangles of the voxel, and add them to the vector
     void clear_Voxel(Voxel& voxel);
     bool seen(Voxel& voxel);
 };
@@ -110,12 +124,14 @@ class TSDF
 
         std::vector<Point> points;
         std::vector<Triangle> triangles;
+        std::vector<Color> colors;
     public:
         void addGrids(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, float voxel_size, float sdf_trunc, float depth_trunc);
-        void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* depth_map, float* weight_map, int width, int height);
+        void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height);
         void Marching_Cubes();
         void clearGrids();
         py::array_t<float> getPoints();
+        py::array_t<float> getColors();
         py::array_t<int> getTriangles();
 };
 //manage all the grids and mesh extraction
