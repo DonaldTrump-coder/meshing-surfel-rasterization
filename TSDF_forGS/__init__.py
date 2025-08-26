@@ -19,4 +19,5 @@ class TSDF:
         self.tsdf.Marching_Cubes()
         points=self.tsdf.getPoints()
         triangles = self.tsdf.getTriangles()
-        return points, triangles
+        colors=self.tsdf.getColors()
+        return points, triangles, colors
