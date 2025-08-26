@@ -10,10 +10,10 @@ class TSDF:
     def addGrids(self, xmin, ymin, zmin, xmax, ymax, zmax, voxel_size, sdf_trunc, depth_trunc):
         self.tsdf.addGrids(xmin,ymin,zmin,xmax,ymax,zmax,voxel_size,sdf_trunc,depth_trunc)
 
-    def TSDF_Integration(self, K: np.ndarray, Rt: np.ndarray,depth_map: np.ndarray, weight_map: np.ndarray):
+    def TSDF_Integration(self, K: np.ndarray, Rt: np.ndarray,red_map:np.ndarray, green_map:np.ndarray, blue_map:np.ndarray, depth_map: np.ndarray, weight_map: np.ndarray):
 
         height, width = weight_map.shape
-        self.tsdf.TSDF_Integration(K, Rt, depth_map, weight_map, width, height)
+        self.tsdf.TSDF_Integration(K, Rt, red_map, green_map, blue_map, depth_map, weight_map, width, height)
 
     def extract_mesh(self):
         self.tsdf.Marching_Cubes()
