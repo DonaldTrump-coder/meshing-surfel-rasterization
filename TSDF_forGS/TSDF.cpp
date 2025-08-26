@@ -447,6 +447,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                 points.push_back(starting);
                 points.push_back(ending);
                 colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
+                colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                 temp_points.push_back(starting);
                 temp_points.push_back(ending);
                 lines[i]->added=1;
@@ -470,7 +471,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                     ending.z=lines[i]->ending_z;
                     if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.000001)
                     {
-                        colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
+                        //colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                         extended=true;
                         matched=1;
                         break;
@@ -492,7 +493,7 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                     ending.z=lines[i]->starting_z;
                     if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.000001)
                     {
-                        colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
+                        //colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                         extended=true;
                         matched=1;
                         break;
