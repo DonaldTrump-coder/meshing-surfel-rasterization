@@ -102,6 +102,28 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
     }
 }
 
+void Grids::Gaussian_Integration(Gaussian gs)
+{
+    if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmax||gs.means.y>ymax||gs.means.z>zmax)
+        return;
+    float scale=max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
+    int index_scale=(int)(3*scale/voxel_size);
+    int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
+    int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
+    int z=(int)((gs.means.z-zmin)/voxel_size+0.5);//nearest Vertex for Gaussian
+
+    for(int i=x-index_scale;i<x+index_scale;i++)
+    {
+        for(int j=y-index_scale;j<y+index_scale;j++)
+        {
+            for(int k=z-index_scale;k<z+index_scale;k++)
+            {
+                
+            }
+        }
+    }
+}
+
 void Grids::setVoxel(Voxel& voxel,//the voxel to be set vertices
                      int i,//the index of the voxel
                      int j,

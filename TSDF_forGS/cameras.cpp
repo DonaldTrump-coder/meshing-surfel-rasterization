@@ -37,3 +37,8 @@ float get_dist(const float x1, const float y1, const float z1, const float x2, c
     float dz=z2-z1;
     return sqrt(dx*dx+dy*dy+dz*dz);
 }
+
+float dot(glm::vec3 v1, glm::vec3 v2)
+{
+    return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+}

@@ -78,6 +78,17 @@ struct Triangle
     size_t v1,v2,v3;//Indexs of the vertices
 };
 
+struct Gaussian //Parameters of a 2D Gaussian
+{
+    glm::vec3 means;
+    float sh;
+    glm::vec3 normal;
+    glm::vec3 u;
+    glm::vec3 v;
+    glm::vec2 scale;
+    float opacity;
+};
+
 class Grids
 {
 private:
@@ -98,6 +109,7 @@ public:
                    float depth_trunc//max depth
                 );//set other parameters
     void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height);
+    void Gaussian_Integration(Gaussian gs);
     void setVoxel(Voxel& voxel, int i, int j, int k);//Set the vertices of a voxel
     void get_Voxel_Planes(Voxel& voxel, Plane& front, Plane& back, Plane& left, Plane& right, Plane& bottom, Plane& top);
     void add_Plane_Lines(std::vector<Line*>& lines, Plane plane);//match and add the lines of a plane to the lines of the voxel
