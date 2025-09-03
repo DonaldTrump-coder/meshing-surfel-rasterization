@@ -109,7 +109,7 @@ public:
                    float depth_trunc//max depth
                 );//set other parameters
     void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height);
-    void Gaussian_Integration(Gaussian gs);
+    void Gaussian_Integration(Gaussian& gs);
     void setVoxel(Voxel& voxel, int i, int j, int k);//Set the vertices of a voxel
     void get_Voxel_Planes(Voxel& voxel, Plane& front, Plane& back, Plane& left, Plane& right, Plane& bottom, Plane& top);
     void add_Plane_Lines(std::vector<Line*>& lines, Plane plane);//match and add the lines of a plane to the lines of the voxel
@@ -134,12 +134,15 @@ class TSDF
         Plane bottom;
         Plane top;
 
+        Gaussian gs;
+
         std::vector<Point> points;
         std::vector<Triangle> triangles;
         std::vector<Color> colors;
     public:
         void addGrids(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, float voxel_size, float sdf_trunc, float depth_trunc);
         void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height);
+        void TSDF::Gaussian_Integration(const glm::vec3 means, const float sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity);
         void Marching_Cubes();
         void clearGrids();
         py::array_t<float> getPoints();

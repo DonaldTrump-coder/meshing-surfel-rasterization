@@ -102,23 +102,40 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
     }
 }
 
-void Grids::Gaussian_Integration(Gaussian gs)
+void Grids::Gaussian_Integration(Gaussian& gs)
 {
     if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmax||gs.means.y>ymax||gs.means.z>zmax)
         return;
     float scale=max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
-    int index_scale=(int)(3*scale/voxel_size);
+    int index_scale=(int)(3*scale/voxel_size+0.5);
     int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
     int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
     int z=(int)((gs.means.z-zmin)/voxel_size+0.5);//nearest Vertex for Gaussian
 
     for(int i=x-index_scale;i<x+index_scale;i++)
     {
+        if(i<0||i>x_length)
+            continue;
         for(int j=y-index_scale;j<y+index_scale;j++)
         {
+            if(j<0||j>y_length)
+                continue;
             for(int k=z-index_scale;k<z+index_scale;k++)
             {
-                
+                if(k<0||k>z_length)
+                    continue;
+                Vertex* vert=get_vertex(i,j,k);// The vertex to be projected
+                glm::vec3 vect(vert->x-gs.means.x , vert->y-gs.means.y , vert->z-gs.means.z); //The vector from Gaussian center to Vertex
+                float u_scale = abs(dot(gs.u , vect));
+                float v_scale = abs(dot(gs.v , vect));
+                float normalized_dist = (u_scale/gs.scale.x)*(u_scale/gs.scale.x)+(v_scale/gs.scale.y)*(v_scale/gs.scale.y);
+                if(normalized_dist>1)//temporary parameters
+                    continue; //the Vertex is out of bound of the Gaussian
+                float GaussianDF = dot(vect , gs.normal);
+                float weight = gs.opacity * exp(-0.5*normalized_dist);
+                vert->tsdf = (v->weight*v->tsdf + GaussianDF*weight) / (v->weight + weight);
+                v->weight += weight;
+                v->seen=1;
             }
         }
     }
@@ -609,6 +626,30 @@ void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_
     for(int i=0;i<grids_num;i++)
     {
         grids[i]->TSDF_Integration(K,Rt, red_map, green_map, blue_map, depth_map, weight_map,width,height);
+    }
+}
+
+void TSDF::Gaussian_Integration(const glm::vec3 means, const float sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity)
+{
+    gs.means.x=means.x;
+    gs.means.y=means.y;
+    gs.means.z=means.z;
+    gs.sh=sh;
+    gs.normal.x=normal.x;
+    gs.normal.y=normal.y;
+    gs.normal.z=normal.z;
+    gs.u.x=u.x;
+    gs.u.y=u.y;
+    gs.u.z=u.z;
+    gs.v.x=v.x;
+    gs.v.y=v.y;
+    gs.v.z=v.z;
+    gs.scale.x=scale.x;
+    gs.scale.y=scale.y;
+    gs.opacity=opacity;
+    for(int i=0;i<grids_num;i++)
+    {
+        grids[i]->Gaussian_Integration(gs);
     }
 }
 
