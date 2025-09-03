@@ -16,7 +16,7 @@ class TSDF:
         self.tsdf.TSDF_Integration(K, Rt, red_map, green_map, blue_map, depth_map, weight_map, width, height)
 
     def Gaussian_Integration(self, means: np.ndarray, sh, normal: np.ndarray, u: np.ndarray, v: np.ndarray, scale: np.ndarray, opacity: float):
-        self.tsdf.Gaussian_Integration(means, sh, u, v, scale, opacity)
+        self.tsdf.Gaussian_Integration(means, sh, normal, u, v, scale, opacity)
 
     def extract_mesh(self):
         self.tsdf.Marching_Cubes()
