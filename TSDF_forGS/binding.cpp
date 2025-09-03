@@ -3,6 +3,8 @@
 glm::mat3 np_to_glm3(pybind11::array_t<double> arr);
 glm::mat4x3 np_to_glm4x3(pybind11::array_t<double> arr);
 float* np_to_array1d(pybind11::array_t<float> arr);
+glm::vec3 np_to_glmvec3(pybind11::array_t<float> arr);
+glm::vec2 np_to_glmvec2(pybind11::array_t<float> arr);
 
 namespace py = pybind11;
 
@@ -57,6 +59,32 @@ PYBIND11_MODULE(_C,m)
          py::arg("width"),
          py::arg("height")
         )
+    .def("Gaussian_Integration",
+        [](TSDF &tsdf,
+        pybind11::array_t<float> means_np,
+        float sh,
+        pybind11::array_t<float> normal_np,
+        pybind11::array_t<float> u_np,
+        pybind11::array_t<float> v_np,
+        pybind11::array_t<float> scale_np,
+        float opacity)
+        {
+            glm::vec3 means = np_to_glmvec3(means_np);
+            glm::vec3 normal = np_to_glmvec3(normal_np);
+            glm::vec3 u = np_to_glmvec3(u_np);
+            glm::vec3 v = np_to_glmvec3(v_np);
+            glm::vec2 scale = np_to_glmvec2(scale_np);
+
+            tsdf.Gaussian_Integration(means, sh, normal, u, v, scale, opacity);
+        },
+        py::arg("means"),
+        py::arg("sh"),
+        py::arg("normal"),
+        py::arg("u"),
+        py::arg("v"),
+        py::arg("scale"),
+        py::arg("opacity")
+    )
     .def("Marching_Cubes",&TSDF::Marching_Cubes)
     .def("getPoints",&TSDF::getPoints)
     .def("getColors",&TSDF::getColors)
@@ -86,6 +114,22 @@ glm::mat4x3 np_to_glm4x3(pybind11::array_t<double> arr)
         ptr[2], ptr[6], ptr[10],
         ptr[3], ptr[7], ptr[11]
     );
+}
+
+glm::vec3 np_to_glmvec3(pybind11::array_t<float> arr)
+{
+    auto buf = arr.request();
+    if (buf.size != 3) throw std::runtime_error("Expected 3-element array");
+    float* ptr = (float*)buf.ptr;
+    return glm::vec3(ptr[0], ptr[1], ptr[2]);
+}
+
+glm::vec2 np_to_glmvec2(pybind11::array_t<float> arr)
+{
+    auto buf = arr.request();
+    if (buf.size != 2) throw std::runtime_error("Expected 2-element array");
+    float* ptr = (float*)buf.ptr;
+    return glm::vec2(ptr[0], ptr[1]);
 }
 
 float* np_to_array1d(pybind11::array_t<float> arr)

@@ -1,7 +1,7 @@
 from . import _C
 import numpy as np
 
-__version__="0.0.1" # 手写TSDF的版本
+__version__="0.0.4" # 手写TSDF的版本
 
 class TSDF:
     def __init__(self):
@@ -14,6 +14,9 @@ class TSDF:
 
         height, width = weight_map.shape
         self.tsdf.TSDF_Integration(K, Rt, red_map, green_map, blue_map, depth_map, weight_map, width, height)
+
+    def Gaussian_Integration(self, means: np.ndarray, sh, normal: np.ndarray, u: np.ndarray, v: np.ndarray, scale: np.ndarray, opacity: float):
+        self.tsdf.Gaussian_Integration(means, sh, u, v, scale, opacity)
 
     def extract_mesh(self):
         self.tsdf.Marching_Cubes()

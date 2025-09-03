@@ -104,9 +104,9 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
 
 void Grids::Gaussian_Integration(Gaussian& gs)
 {
-    if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmax||gs.means.y>ymax||gs.means.z>zmax)
+    if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmin+x_length*voxel_size||gs.means.y>ymin+y_length*voxel_size||gs.means.z>zmin+z_length*voxel_size)
         return;
-    float scale=max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
+    float scale=std::max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
     int index_scale=(int)(3*scale/voxel_size+0.5);
     int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
     int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
@@ -133,9 +133,9 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                     continue; //the Vertex is out of bound of the Gaussian
                 float GaussianDF = dot(vect , gs.normal);
                 float weight = gs.opacity * exp(-0.5*normalized_dist);
-                vert->tsdf = (v->weight*v->tsdf + GaussianDF*weight) / (v->weight + weight);
-                v->weight += weight;
-                v->seen=1;
+                vert->tsdf = (vert->weight*vert->tsdf + GaussianDF*weight) / (vert->weight + weight);
+                vert->weight += weight;
+                vert->seen=1;
             }
         }
     }
