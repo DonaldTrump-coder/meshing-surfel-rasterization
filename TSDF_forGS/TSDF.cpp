@@ -107,7 +107,7 @@ void Grids::Gaussian_Integration(Gaussian& gs)
     if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmin+x_length*voxel_size||gs.means.y>ymin+y_length*voxel_size||gs.means.z>zmin+z_length*voxel_size)
         return;
     float scale=std::max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
-    int index_scale=(int)(scale/voxel_size)+1;
+    int index_scale=(int)(scale/voxel_size+0.5);
     int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
     int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
     int z=(int)((gs.means.z-zmin)/voxel_size+0.5);//nearest Vertex for Gaussian
