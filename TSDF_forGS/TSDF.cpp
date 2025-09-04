@@ -115,14 +115,14 @@ void Grids::Gaussian_Integration(Gaussian& gs)
     #pragma omp parallel for collapse(3)
     for(int i=x-index_scale;i<x+index_scale;i++)
     {
-        if(i<0||i>x_length)
-            continue;
         for(int j=y-index_scale;j<y+index_scale;j++)
         {
-            if(j<0||j>y_length)
-                continue;
             for(int k=z-index_scale;k<z+index_scale;k++)
             {
+                if(i<0||i>x_length)
+                    continue;
+                if(j<0||j>y_length)
+                    continue;
                 if(k<0||k>z_length)
                     continue;
                 Vertex* vert=get_vertex(i,j,k);// The vertex to be projected
