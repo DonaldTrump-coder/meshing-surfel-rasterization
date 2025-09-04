@@ -107,7 +107,7 @@ void Grids::Gaussian_Integration(Gaussian& gs)
     if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmin+x_length*voxel_size||gs.means.y>ymin+y_length*voxel_size||gs.means.z>zmin+z_length*voxel_size)
         return;
     float scale=std::max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
-    int index_scale=(int)(scale/voxel_size+0.5);
+    int index_scale=(int)(scale/voxel_size)+1;
     int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
     int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
     int z=(int)((gs.means.z-zmin)/voxel_size+0.5);//nearest Vertex for Gaussian
@@ -124,6 +124,8 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                 if(j<0||j>y_length)
                     continue;
                 if(k<0||k>z_length)
+                    continue;
+                if(index_scale>5)
                     continue;
                 Vertex* vert=get_vertex(i,j,k);// The vertex to be projected
                 glm::vec3 vect(vert->x-gs.means.x , vert->y-gs.means.y , vert->z-gs.means.z); //The vector from Gaussian center to Vertex
