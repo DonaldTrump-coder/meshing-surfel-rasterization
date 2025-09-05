@@ -62,7 +62,7 @@ PYBIND11_MODULE(_C,m)
     .def("Gaussian_Integration",
         [](TSDF &tsdf,
         pybind11::array_t<float> means_np,
-        float sh,
+        pybind11::array_t<float> sh_np,
         pybind11::array_t<float> normal_np,
         pybind11::array_t<float> u_np,
         pybind11::array_t<float> v_np,
@@ -70,6 +70,7 @@ PYBIND11_MODULE(_C,m)
         float opacity)
         {
             glm::vec3 means = np_to_glmvec3(means_np);
+            glm::vec3 sh = np_to_glmvec3(sh_np);
             glm::vec3 normal = np_to_glmvec3(normal_np);
             glm::vec3 u = np_to_glmvec3(u_np);
             glm::vec3 v = np_to_glmvec3(v_np);

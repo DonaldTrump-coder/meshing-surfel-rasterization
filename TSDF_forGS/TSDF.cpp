@@ -641,12 +641,15 @@ void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_
     }
 }
 
-void TSDF::Gaussian_Integration(const glm::vec3 means, const float sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity)
+void TSDF::Gaussian_Integration(const glm::vec3 means, const glm::vec3 sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity)
 {
     gs.means.x=means.x;
     gs.means.y=means.y;
     gs.means.z=means.z;
-    gs.sh=sh;
+    
+    //convert sh to RGB
+    
+
     gs.normal.x=normal.x;
     gs.normal.y=normal.y;
     gs.normal.z=normal.z;
