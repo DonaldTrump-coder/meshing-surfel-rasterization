@@ -8,6 +8,8 @@
 
 namespace py = pybind11;
 
+const float SH_C0 = 0.28209479177387814f;
+
 //Storing TSDF directly in the Vertices
 struct Vertex
 {
@@ -118,6 +120,8 @@ public:
     void Searching_for_Triangles(std::vector<Point>& points, std::vector<Triangle>& triangles, std::vector<Color>& colors, std::vector<Line*>& lines);//find the triangles of the voxel, and add them to the vector
     void clear_Voxel(Voxel& voxel);
     bool seen(Voxel& voxel);
+    bool Vertex_near_Gaus(Vertex* vert, Gaussian& gs);
+    bool get_DF_sign(float x, float y, float z, Gaussian& gs);
 };
 //格网类
 

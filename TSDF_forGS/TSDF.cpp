@@ -139,17 +139,65 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                     continue;
 
                 float GaussianDF = dot(vect , gs.normal);
-                if (GaussianDF > 2*sdf_trunc || GaussianDF < -2*back_sdf_trunc) 
+                if(GaussianDF > voxel_size*sqrt(3))
                 {
-                    continue;
+                    continue; //out of bound
+                }
+                else if(GaussianDF > voxel_size)
+                {
+                    // maybe out of bound (needs judging)
+                    if(Vertex_near_Gaus(vert, gs) == false)
+                    {
+                        continue;
+                    }
                 }
                 float tGaussianDF = std::clamp(GaussianDF, -back_sdf_trunc, sdf_trunc);
 
                 vert->tsdf = (vert->weight*vert->tsdf + tGaussianDF*weight) / (vert->weight + weight);
+                vert->R = (vert->weight*vert->R + gs.R*weight) / (vert->weight + weight);
+                vert->G = (vert->weight*vert->G + gs.G*weight) / (vert->weight + weight);
+                vert->B = (vert->weight*vert->B + gs.B*weight) / (vert->weight + weight);
                 vert->weight += weight;
                 vert->seen=1;
             }
         }
+    }
+}
+
+bool Grids::Vertex_near_Gaus(Vertex* vert, Gaussian& gs)
+{
+    float x = vert->x;
+    float y = vert->y;
+    float z = vert->z; // coordinate of point
+    bool point1 = get_DF_sign(x-voxel_size, y-voxel_size, z+voxel_size, gs);
+    bool point2 = get_DF_sign(x+voxel_size, y-voxel_size, z+voxel_size, gs);
+    bool point3 = get_DF_sign(x+voxel_size, y+voxel_size, z+voxel_size, gs);
+    bool point4 = get_DF_sign(x-voxel_size, y+voxel_size, z+voxel_size, gs);
+    bool point5 = get_DF_sign(x-voxel_size, y-voxel_size, z-voxel_size, gs);
+    bool point6 = get_DF_sign(x+voxel_size, y-voxel_size, z-voxel_size, gs);
+    bool point7 = get_DF_sign(x+voxel_size, y+voxel_size, z-voxel_size, gs);
+    bool point8 = get_DF_sign(x-voxel_size, y+voxel_size, z-voxel_size, gs);
+    if(point1==true && point2==true && point3==true && point4==true && point5==true && point6==true && point7==true && point8==true)
+    {
+        return false;
+    }
+    if(point1==false && point2==false && point3==false && point4==false && point5==false && point6==false && point7==false && point8==false)
+    {
+        return false;
+    }
+    return true;
+}
+
+bool Grids::get_DF_sign(float x, float y, float z, Gaussian& gs)
+{
+    glm::vec3 vect(x-gs.means.x, y-gs.means.y, z-gs.means.z);
+    if(dot(vect, gs.normal)>=0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 
@@ -648,7 +696,10 @@ void TSDF::Gaussian_Integration(const glm::vec3 means, const glm::vec3 sh, const
     gs.means.z=means.z;
     
     //convert sh to RGB
-    
+    glm::vec3 rgb = SH_C0 * sh + 0.5f;
+    gs.R = std::max(rgb.x, 0.0f);
+    gs.G = std::max(rgb.y, 0.0f);
+    gs.B = std::max(rgb.z, 0.0f);
 
     gs.normal.x=normal.x;
     gs.normal.y=normal.y;
