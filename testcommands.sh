@@ -5,6 +5,8 @@ python test\\test.py ^
     --sdf_trunc 15 ^
     --depth_trunc 400
 
+python test\\gsfilter.py
+
 Linux:
 python test\\test.py \
     "C:\\Users\\10527\\Desktop\\Research of 2DGS\\data" \
