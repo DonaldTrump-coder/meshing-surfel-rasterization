@@ -134,8 +134,8 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                 float normalized_dist = (u_scale/gs.scale.x)*(u_scale/gs.scale.x)+(v_scale/gs.scale.y)*(v_scale/gs.scale.y);
                 if(normalized_dist>6)//temporary parameters
                     continue; //the Vertex is out of bound of the Gaussian
-                float weight = abs(1.2*gs.opacity * exp(-0.5*normalized_dist));
-                if(weight<0.05)
+                float weight = abs(1.5*gs.opacity * exp(-0.5*normalized_dist));
+                if(weight<0.03)
                     continue;
 
                 float GaussianDF = dot(vect , gs.normal);
