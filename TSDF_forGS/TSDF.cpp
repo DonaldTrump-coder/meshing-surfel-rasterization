@@ -125,14 +125,14 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                     continue;
                 if(k<0||k>z_length)
                     continue;
-                if(index_scale>5)
+                if(index_scale>7)
                     continue;
                 Vertex* vert=get_vertex(i,j,k);// The vertex to be projected
                 glm::vec3 vect(vert->x-gs.means.x , vert->y-gs.means.y , vert->z-gs.means.z); //The vector from Gaussian center to Vertex
                 float u_scale = abs(dot(gs.u , vect));
                 float v_scale = abs(dot(gs.v , vect));
                 float normalized_dist = (u_scale/gs.scale.x)*(u_scale/gs.scale.x)+(v_scale/gs.scale.y)*(v_scale/gs.scale.y);
-                if(normalized_dist>3)//temporary parameters
+                if(normalized_dist>4)//temporary parameters
                     continue; //the Vertex is out of bound of the Gaussian
                 float weight = abs(1.2*gs.opacity * exp(-0.5*normalized_dist));
                 if(weight<0.01)
