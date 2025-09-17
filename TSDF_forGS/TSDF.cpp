@@ -135,15 +135,15 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                 if(normalized_dist>6)//temporary parameters
                     continue; //the Vertex is out of bound of the Gaussian
                 float weight = abs(1.5*gs.opacity * exp(-0.5*normalized_dist));
-                if(weight<0.03)
+                if(weight<0.01)
                     continue;
 
                 float GaussianDF = dot(vect , gs.normal);
-                if(GaussianDF > 2*voxel_size*sqrt(3))
+                if(GaussianDF > 2.5*voxel_size*sqrt(3))
                 {
                     continue; //out of bound
                 }
-                else if(GaussianDF > 2*voxel_size)
+                else if(GaussianDF > 2.5*voxel_size)
                 {
                     // maybe out of bound (needs judging)
                     if(Vertex_near_Gaus(vert, gs) == false)
@@ -169,14 +169,14 @@ bool Grids::Vertex_near_Gaus(Vertex* vert, Gaussian& gs)
     float x = vert->x;
     float y = vert->y;
     float z = vert->z; // coordinate of point
-    bool point1 = get_DF_sign(x-2*voxel_size, y-2*voxel_size, z+2*voxel_size, gs);
-    bool point2 = get_DF_sign(x+2*voxel_size, y-2*voxel_size, z+2*voxel_size, gs);
-    bool point3 = get_DF_sign(x+2*voxel_size, y+2*voxel_size, z+2*voxel_size, gs);
-    bool point4 = get_DF_sign(x-2*voxel_size, y+2*voxel_size, z+2*voxel_size, gs);
-    bool point5 = get_DF_sign(x-2*voxel_size, y-2*voxel_size, z-2*voxel_size, gs);
-    bool point6 = get_DF_sign(x+2*voxel_size, y-2*voxel_size, z-2*voxel_size, gs);
-    bool point7 = get_DF_sign(x+2*voxel_size, y+2*voxel_size, z-2*voxel_size, gs);
-    bool point8 = get_DF_sign(x-2*voxel_size, y+2*voxel_size, z-2*voxel_size, gs);
+    bool point1 = get_DF_sign(x-2.5*voxel_size, y-2.5*voxel_size, z+2.5*voxel_size, gs);
+    bool point2 = get_DF_sign(x+2.5*voxel_size, y-2.5*voxel_size, z+2.5*voxel_size, gs);
+    bool point3 = get_DF_sign(x+2.5*voxel_size, y+2.5*voxel_size, z+2.5*voxel_size, gs);
+    bool point4 = get_DF_sign(x-2.5*voxel_size, y+2.5*voxel_size, z+2.5*voxel_size, gs);
+    bool point5 = get_DF_sign(x-2.5*voxel_size, y-2.5*voxel_size, z-2.5*voxel_size, gs);
+    bool point6 = get_DF_sign(x+2.5*voxel_size, y-2.5*voxel_size, z-2.5*voxel_size, gs);
+    bool point7 = get_DF_sign(x+2.5*voxel_size, y+2.5*voxel_size, z-2.5*voxel_size, gs);
+    bool point8 = get_DF_sign(x-2.5*voxel_size, y+2.5*voxel_size, z-2.5*voxel_size, gs);
     if(point1==true && point2==true && point3==true && point4==true && point5==true && point6==true && point7==true && point8==true)
     {
         return false;
