@@ -169,14 +169,14 @@ bool Grids::Vertex_near_Gaus(Vertex* vert, Gaussian& gs)
     float x = vert->x;
     float y = vert->y;
     float z = vert->z; // coordinate of point
-    bool point1 = get_DF_sign(x-voxel_size, y-voxel_size, z+voxel_size, gs);
-    bool point2 = get_DF_sign(x+voxel_size, y-voxel_size, z+voxel_size, gs);
-    bool point3 = get_DF_sign(x+voxel_size, y+voxel_size, z+voxel_size, gs);
-    bool point4 = get_DF_sign(x-voxel_size, y+voxel_size, z+voxel_size, gs);
-    bool point5 = get_DF_sign(x-voxel_size, y-voxel_size, z-voxel_size, gs);
-    bool point6 = get_DF_sign(x+voxel_size, y-voxel_size, z-voxel_size, gs);
-    bool point7 = get_DF_sign(x+voxel_size, y+voxel_size, z-voxel_size, gs);
-    bool point8 = get_DF_sign(x-voxel_size, y+voxel_size, z-voxel_size, gs);
+    bool point1 = get_DF_sign(x-2*voxel_size, y-2*voxel_size, z+2*voxel_size, gs);
+    bool point2 = get_DF_sign(x+2*voxel_size, y-2*voxel_size, z+2*voxel_size, gs);
+    bool point3 = get_DF_sign(x+2*voxel_size, y+2*voxel_size, z+2*voxel_size, gs);
+    bool point4 = get_DF_sign(x-2*voxel_size, y+2*voxel_size, z+2*voxel_size, gs);
+    bool point5 = get_DF_sign(x-2*voxel_size, y-2*voxel_size, z-2*voxel_size, gs);
+    bool point6 = get_DF_sign(x+2*voxel_size, y-2*voxel_size, z-2*voxel_size, gs);
+    bool point7 = get_DF_sign(x+2*voxel_size, y+2*voxel_size, z-2*voxel_size, gs);
+    bool point8 = get_DF_sign(x-2*voxel_size, y+2*voxel_size, z-2*voxel_size, gs);
     if(point1==true && point2==true && point3==true && point4==true && point5==true && point6==true && point7==true && point8==true)
     {
         return false;
