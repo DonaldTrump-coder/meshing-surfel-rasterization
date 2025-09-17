@@ -139,11 +139,11 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                     continue;
 
                 float GaussianDF = dot(vect , gs.normal);
-                if(GaussianDF > voxel_size*sqrt(3))
+                if(GaussianDF > 2*voxel_size*sqrt(3))
                 {
                     continue; //out of bound
                 }
-                else if(GaussianDF > voxel_size)
+                else if(GaussianDF > 2*voxel_size)
                 {
                     // maybe out of bound (needs judging)
                     if(Vertex_near_Gaus(vert, gs) == false)
