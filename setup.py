@@ -20,7 +20,7 @@ setup(
     packages=['meshing_surfel_rasterization',
               'TSDF_forGS' # 新增的包
               ],
-    version='0.0.6',
+    version='0.0.7',
     ext_modules=[
         CUDAExtension(
             name="meshing_surfel_rasterization._C",
