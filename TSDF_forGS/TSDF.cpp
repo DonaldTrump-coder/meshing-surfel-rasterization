@@ -151,7 +151,7 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
                         continue;
                     }
                 }
-                float tGaussianDF = std::clamp(GaussianDF, -back_sdf_trunc, sdf_trunc);
+                float tGaussianDF = std::clamp(GaussianDF, sdf_trunc, sdf_trunc);
                 //float tGaussianDF = GaussianDF;
 
                 vert->tsdf = (vert->weight*vert->tsdf + tGaussianDF*weight) / (vert->weight + weight);
