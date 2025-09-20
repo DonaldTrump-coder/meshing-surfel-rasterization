@@ -111,6 +111,7 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
     int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
     int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
     int z=(int)((gs.means.z-zmin)/voxel_size+0.5);//nearest Vertex for Gaussian
+    vox_scale = vox_scale*scale;
 
     #pragma omp parallel for collapse(3)
     for(int i=x-index_scale;i<x+index_scale;i++)
