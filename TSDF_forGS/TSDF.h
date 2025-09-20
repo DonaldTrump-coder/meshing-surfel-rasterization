@@ -113,14 +113,14 @@ public:
                    float depth_trunc//max depth
                 );//set other parameters
     void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height);
-    void Gaussian_Integration(Gaussian& gs);
+    void Gaussian_Integration(Gaussian& gs, float vox_scale);
     void setVoxel(Voxel& voxel, int i, int j, int k);//Set the vertices of a voxel
     void get_Voxel_Planes(Voxel& voxel, Plane& front, Plane& back, Plane& left, Plane& right, Plane& bottom, Plane& top);
     void add_Plane_Lines(std::vector<Line*>& lines, Plane plane);//match and add the lines of a plane to the lines of the voxel
     void Searching_for_Triangles(std::vector<Point>& points, std::vector<Triangle>& triangles, std::vector<Color>& colors, std::vector<Line*>& lines);//find the triangles of the voxel, and add them to the vector
     void clear_Voxel(Voxel& voxel);
     bool seen(Voxel& voxel);
-    bool Vertex_near_Gaus(Vertex* vert, Gaussian& gs);
+    bool Vertex_near_Gaus(Vertex* vert, Gaussian& gs, float vox_scale);
     bool get_DF_sign(float x, float y, float z, Gaussian& gs);
 };
 //格网类
@@ -148,7 +148,7 @@ class TSDF
     public:
         void addGrids(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, float voxel_size, float sdf_trunc, float depth_trunc);
         void TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_map, float* green_map, float* blue_map, float* depth_map, float* weight_map, int width, int height);
-        void Gaussian_Integration(const glm::vec3 means, const glm::vec3 sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity);
+        void Gaussian_Integration(const glm::vec3 means, const glm::vec3 sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity, float vox_scale);
         void Marching_Cubes();
         void clearGrids();
         py::array_t<float> getPoints();

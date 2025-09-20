@@ -67,7 +67,8 @@ PYBIND11_MODULE(_C,m)
         pybind11::array_t<float> u_np,
         pybind11::array_t<float> v_np,
         pybind11::array_t<float> scale_np,
-        float opacity)
+        float opacity,
+        float vox_scale)
         {
             glm::vec3 means = np_to_glmvec3(means_np);
             glm::vec3 sh = np_to_glmvec3(sh_np);
@@ -76,7 +77,7 @@ PYBIND11_MODULE(_C,m)
             glm::vec3 v = np_to_glmvec3(v_np);
             glm::vec2 scale = np_to_glmvec2(scale_np);
 
-            tsdf.Gaussian_Integration(means, sh, normal, u, v, scale, opacity);
+            tsdf.Gaussian_Integration(means, sh, normal, u, v, scale, opacity, vox_scale);
         },
         py::arg("means"),
         py::arg("sh"),
@@ -84,7 +85,8 @@ PYBIND11_MODULE(_C,m)
         py::arg("u"),
         py::arg("v"),
         py::arg("scale"),
-        py::arg("opacity")
+        py::arg("opacity"),
+        py::arg("vox_scale")
     )
     .def("Marching_Cubes",&TSDF::Marching_Cubes)
     .def("getPoints",&TSDF::getPoints)

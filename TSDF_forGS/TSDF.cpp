@@ -102,7 +102,7 @@ void Grids::TSDF_Integration(const glm::mat3 K, //Inner Matrix of camera(3×3)
     }
 }
 
-void Grids::Gaussian_Integration(Gaussian& gs)
+void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
 {
     if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmin+x_length*voxel_size||gs.means.y>ymin+y_length*voxel_size||gs.means.z>zmin+z_length*voxel_size)
         return;
@@ -135,23 +135,24 @@ void Grids::Gaussian_Integration(Gaussian& gs)
                 if(normalized_dist>4)//temporary parameters
                     continue; //the Vertex is out of bound of the Gaussian
                 float weight = abs(1.6*gs.opacity * exp(-0.5*normalized_dist));
-                if(weight<0.001)
+                if(weight<0.005)
                     continue;
-
+                
                 float GaussianDF = dot(vect , gs.normal);
-                if(GaussianDF > 2*voxel_size*sqrt(3))
+                if(GaussianDF > vox_scale * voxel_size*sqrt(3))
                 {
                     continue; //out of bound
                 }
-                else if(GaussianDF > 2*voxel_size)
+                else if(GaussianDF > vox_scale * voxel_size)
                 {
                     // maybe out of bound (needs judging)
-                    if(Vertex_near_Gaus(vert, gs) == false)
+                    if(Vertex_near_Gaus(vert, gs, vox_scale) == false)
                     {
                         continue;
                     }
                 }
-                float tGaussianDF = std::clamp(GaussianDF, -back_sdf_trunc, sdf_trunc);
+                //float tGaussianDF = std::clamp(GaussianDF, -back_sdf_trunc, sdf_trunc);
+                float tGaussianDF = GaussianDF;
 
                 vert->tsdf = (vert->weight*vert->tsdf + tGaussianDF*weight) / (vert->weight + weight);
                 vert->R = (vert->weight*vert->R + gs.R*weight) / (vert->weight + weight);
@@ -164,19 +165,19 @@ void Grids::Gaussian_Integration(Gaussian& gs)
     }
 }
 
-bool Grids::Vertex_near_Gaus(Vertex* vert, Gaussian& gs)
+bool Grids::Vertex_near_Gaus(Vertex* vert, Gaussian& gs, float vox_scale)
 {
     float x = vert->x;
     float y = vert->y;
     float z = vert->z; // coordinate of point
-    bool point1 = get_DF_sign(x-2*voxel_size, y-2*voxel_size, z+2*voxel_size, gs);
-    bool point2 = get_DF_sign(x+2*voxel_size, y-2*voxel_size, z+2*voxel_size, gs);
-    bool point3 = get_DF_sign(x+2*voxel_size, y+2*voxel_size, z+2*voxel_size, gs);
-    bool point4 = get_DF_sign(x-2*voxel_size, y+2*voxel_size, z+2*voxel_size, gs);
-    bool point5 = get_DF_sign(x-2*voxel_size, y-2*voxel_size, z-2*voxel_size, gs);
-    bool point6 = get_DF_sign(x+2*voxel_size, y-2*voxel_size, z-2*voxel_size, gs);
-    bool point7 = get_DF_sign(x+2*voxel_size, y+2*voxel_size, z-2*voxel_size, gs);
-    bool point8 = get_DF_sign(x-2*voxel_size, y+2*voxel_size, z-2*voxel_size, gs);
+    bool point1 = get_DF_sign(x-vox_scale*voxel_size, y-vox_scale*voxel_size, z+vox_scale*voxel_size, gs);
+    bool point2 = get_DF_sign(x+vox_scale*voxel_size, y-vox_scale*voxel_size, z+vox_scale*voxel_size, gs);
+    bool point3 = get_DF_sign(x+vox_scale*voxel_size, y+vox_scale*voxel_size, z+vox_scale*voxel_size, gs);
+    bool point4 = get_DF_sign(x-vox_scale*voxel_size, y+vox_scale*voxel_size, z+vox_scale*voxel_size, gs);
+    bool point5 = get_DF_sign(x-vox_scale*voxel_size, y-vox_scale*voxel_size, z-vox_scale*voxel_size, gs);
+    bool point6 = get_DF_sign(x+vox_scale*voxel_size, y-vox_scale*voxel_size, z-vox_scale*voxel_size, gs);
+    bool point7 = get_DF_sign(x+vox_scale*voxel_size, y+vox_scale*voxel_size, z-vox_scale*voxel_size, gs);
+    bool point8 = get_DF_sign(x-vox_scale*voxel_size, y+vox_scale*voxel_size, z-vox_scale*voxel_size, gs);
     if(point1==true && point2==true && point3==true && point4==true && point5==true && point6==true && point7==true && point8==true)
     {
         return false;
@@ -689,7 +690,7 @@ void TSDF::TSDF_Integration(const glm::mat3 K, const glm::mat4x3 Rt, float* red_
     }
 }
 
-void TSDF::Gaussian_Integration(const glm::vec3 means, const glm::vec3 sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity)
+void TSDF::Gaussian_Integration(const glm::vec3 means, const glm::vec3 sh, const glm::vec3 normal, const glm::vec3 u, const glm::vec3 v, const glm::vec2 scale, const float opacity, float vox_scale)
 {
     gs.means.x=means.x;
     gs.means.y=means.y;
@@ -715,7 +716,7 @@ void TSDF::Gaussian_Integration(const glm::vec3 means, const glm::vec3 sh, const
     gs.opacity=opacity;
     for(int i=0;i<grids_num;i++)
     {
-        grids[i]->Gaussian_Integration(gs);
+        grids[i]->Gaussian_Integration(gs, vox_scale);
     }
 }
 
