@@ -135,8 +135,8 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
                 if(normalized_dist>5)//temporary parameters
                     continue; //the Vertex is out of bound of the Gaussian
                 float weight = abs(2*gs.opacity * exp(-0.5*normalized_dist));
-                if(weight<0.001)
-                    continue;
+                //if(weight<0.001)
+                    //continue;
                 
                 float GaussianDF = dot(vect , gs.normal);
                 if(GaussianDF > vox_scale * voxel_size*sqrt(3))
@@ -151,8 +151,8 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
                         continue;
                     }
                 }
-                //float tGaussianDF = std::clamp(GaussianDF, -back_sdf_trunc, sdf_trunc);
-                float tGaussianDF = GaussianDF;
+                float tGaussianDF = std::clamp(GaussianDF, -back_sdf_trunc, sdf_trunc);
+                //float tGaussianDF = GaussianDF;
 
                 vert->tsdf = (vert->weight*vert->tsdf + tGaussianDF*weight) / (vert->weight + weight);
                 vert->R = (vert->weight*vert->R + gs.R*weight) / (vert->weight + weight);
