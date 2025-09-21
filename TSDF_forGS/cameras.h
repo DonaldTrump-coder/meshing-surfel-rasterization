@@ -11,3 +11,5 @@ void Linear_Interp(float& x, float& y, float& z, const float& x1, const float& y
 float get_dist(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2);
 
 float dot(glm::vec3 v1, glm::vec3 v2);
+
+glm::vec3 normalize(glm::vec3& vec);

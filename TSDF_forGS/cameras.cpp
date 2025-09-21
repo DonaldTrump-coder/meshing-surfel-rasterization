@@ -42,3 +42,9 @@ float dot(glm::vec3 v1, glm::vec3 v2)
 {
     return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
 }
+
+glm::vec3 normalize(glm::vec3& vec)
+{
+    float len = sqrt(dot(vec, vec));
+    return glm::vec3(vec.x/len, vec.y/len, vec.z/len);
+}

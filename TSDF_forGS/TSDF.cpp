@@ -106,12 +106,20 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
 {
     if(gs.means.x<xmin||gs.means.y<ymin||gs.means.z<zmin||gs.means.x>xmin+x_length*voxel_size||gs.means.y>ymin+y_length*voxel_size||gs.means.z>zmin+z_length*voxel_size)
         return;
+    //if(gs.opacity<0.001)
+        //return;
+    float min_scale = std::min(gs.scale.x,gs.scale.y);
     float scale=std::max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
+    if(scale>4)
+        scale = 2;
+    if(min_scale>2)
+        scale = 1;
     int index_scale=(int)(scale/voxel_size+0.5);
+    if(index_scale == 0)
+        index_scale = 1;
     int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
     int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
     int z=(int)((gs.means.z-zmin)/voxel_size+0.5);//nearest Vertex for Gaussian
-    vox_scale = vox_scale*scale;
 
     #pragma omp parallel for collapse(3)
     for(int i=x-index_scale;i<x+index_scale;i++)
@@ -126,26 +134,27 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
                     continue;
                 if(k<0||k>z_length)
                     continue;
-                if(index_scale>7)
-                    continue;
                 Vertex* vert=get_vertex(i,j,k);// The vertex to be projected
                 glm::vec3 vect(vert->x-gs.means.x , vert->y-gs.means.y , vert->z-gs.means.z); //The vector from Gaussian center to Vertex
+                gs.u = normalize(gs.u);
+                gs.v = normalize(gs.v);
                 float u_scale = abs(dot(gs.u , vect));
                 float v_scale = abs(dot(gs.v , vect));
                 float normalized_dist = (u_scale/gs.scale.x)*(u_scale/gs.scale.x)+(v_scale/gs.scale.y)*(v_scale/gs.scale.y);
-                if(normalized_dist>9)//temporary parameters
+                if(normalized_dist>6*vox_scale)//temporary parameters
                     continue; //the Vertex is out of bound of the Gaussian
-                //float weight = abs(2*gs.opacity * exp(-0.5*normalized_dist));
-                float weight =1;
-                //if(weight<0.001)
+                float weight = abs(exp(-0.5*normalized_dist));
+                //float weight =1;
+                //if(weight<0.0001)
                     //continue;
                 
+                gs.normal = normalize(gs.normal);
                 float GaussianDF = dot(vect , gs.normal);
-                if(GaussianDF > vox_scale * voxel_size*sqrt(3))
+                if(abs(GaussianDF) > vox_scale * voxel_size*sqrt(3))
                 {
                     continue; //out of bound
                 }
-                else if(GaussianDF > vox_scale * voxel_size)
+                else if(abs(GaussianDF) > vox_scale * voxel_size)
                 {
                     // maybe out of bound (needs judging)
                     if(Vertex_near_Gaus(vert, gs, vox_scale) == false)
@@ -153,7 +162,7 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
                         continue;
                     }
                 }
-                float tGaussianDF = std::clamp(GaussianDF, sdf_trunc, sdf_trunc);
+                float tGaussianDF = std::clamp(GaussianDF, -sdf_trunc, sdf_trunc);
                 //float tGaussianDF = GaussianDF;
 
                 vert->tsdf = (vert->weight*vert->tsdf + tGaussianDF*weight) / (vert->weight + weight);
@@ -566,12 +575,12 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                 if(lines[i]->added==1)
                     continue;
 
-                if(get_dist(ending.x, ending.y, ending.z, lines[i]->starting_x, lines[i]->starting_y, lines[i]->starting_z)<0.000001)
+                if(get_dist(ending.x, ending.y, ending.z, lines[i]->starting_x, lines[i]->starting_y, lines[i]->starting_z)<0.001)
                 {
                     ending.x=lines[i]->ending_x;
                     ending.y=lines[i]->ending_y;
                     ending.z=lines[i]->ending_z;
-                    if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.000001)
+                    if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.001)
                     {
                         //colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                         extended=true;
@@ -588,12 +597,12 @@ void Grids::Searching_for_Triangles(std::vector<Point>& points, std::vector<Tria
                     break;
                 }
 
-                if(get_dist(ending.x, ending.y, ending.z, lines[i]->ending_x, lines[i]->ending_y, lines[i]->ending_z)<0.000001)
+                if(get_dist(ending.x, ending.y, ending.z, lines[i]->ending_x, lines[i]->ending_y, lines[i]->ending_z)<0.001)
                 {
                     ending.x=lines[i]->starting_x;
                     ending.y=lines[i]->starting_y;
                     ending.z=lines[i]->starting_z;
-                    if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.000001)
+                    if(get_dist(ending.x,ending.y,ending.z,starting.x,starting.y,starting.z)<0.001)
                     {
                         //colors.push_back(Color(lines[i]->R,lines[i]->G,lines[i]->B));
                         extended=true;
