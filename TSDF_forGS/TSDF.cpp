@@ -110,13 +110,11 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
         //return;
     float min_scale = std::min(gs.scale.x,gs.scale.y);
     float scale=std::max(gs.scale.x,gs.scale.y); //get the scale to calculate for the vertices
-    if(scale>4)
-        scale = 2;
-    if(min_scale>2)
-        scale = 1;
-    int index_scale=(int)(scale/voxel_size+0.5);
-    if(index_scale == 0)
-        index_scale = 1;
+    if(scale>3)
+        scale = 2.5;
+    if(min_scale>2.5)
+        scale = 2.5;
+    int index_scale=(int)(scale/voxel_size+3);
     int x=(int)((gs.means.x-xmin)/voxel_size+0.5);
     int y=(int)((gs.means.y-ymin)/voxel_size+0.5);
     int z=(int)((gs.means.z-zmin)/voxel_size+0.5);//nearest Vertex for Gaussian
@@ -141,9 +139,9 @@ void Grids::Gaussian_Integration(Gaussian& gs, float vox_scale)
                 float u_scale = abs(dot(gs.u , vect));
                 float v_scale = abs(dot(gs.v , vect));
                 float normalized_dist = (u_scale/gs.scale.x)*(u_scale/gs.scale.x)+(v_scale/gs.scale.y)*(v_scale/gs.scale.y);
-                if(normalized_dist>6*vox_scale)//temporary parameters
+                if(normalized_dist>13*vox_scale)//temporary parameters
                     continue; //the Vertex is out of bound of the Gaussian
-                float weight = abs(exp(-0.5*normalized_dist));
+                float weight = exp(gs.opacity)-1;
                 //float weight =1;
                 //if(weight<0.0001)
                     //continue;
@@ -658,21 +656,21 @@ void Grids::clear_Voxel(Voxel& voxel)
 
 bool Grids::seen(Voxel& voxel)
 {
-    if(voxel.vert1->seen==0)
+    if(voxel.vert1->seen==0 || voxel.vert1->weight<1.55)
         return 0;
-    if(voxel.vert2->seen==0)
+    if(voxel.vert2->seen==0 || voxel.vert2->weight<1.55)
         return 0;
-    if(voxel.vert3->seen==0)
+    if(voxel.vert3->seen==0 || voxel.vert3->weight<1.55)
         return 0;
-    if(voxel.vert4->seen==0)
+    if(voxel.vert4->seen==0 || voxel.vert4->weight<1.55)
         return 0;
-    if(voxel.vert5->seen==0)
+    if(voxel.vert5->seen==0 || voxel.vert5->weight<1.55)
         return 0;
-    if(voxel.vert6->seen==0)
+    if(voxel.vert6->seen==0 || voxel.vert6->weight<1.55)
         return 0;
-    if(voxel.vert7->seen==0)
+    if(voxel.vert7->seen==0 || voxel.vert7->weight<1.55)
         return 0;
-    if(voxel.vert8->seen==0)
+    if(voxel.vert8->seen==0 || voxel.vert8->weight<1.55)
         return 0;
     return 1;
 }
